@@ -35,7 +35,7 @@ Blog.find().then((data) => {
 });
 
 app.use(cors({
-  origin: 'http://localhost:5173', // Your frontend URL
+  origin: 'https://blog-sandy-xi-71.vercel.app', // Your frontend URL
   credentials: true, // Important for handling credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -115,7 +115,7 @@ app.use("/api", router);
 
 
 app.use(cors({ 
-  origin: 'http://localhost:5173',
+  origin: 'https://blog-sandy-xi-71.vercel.app',
   credentials: true 
 }));
 app.use(express.json()); // Parse JSON bodies
@@ -228,7 +228,7 @@ app.get('/auth/google/callback',
         console.error('Session save error:', err);
         return res.redirect('/error');
       }
-      res.redirect('http://localhost:5173/profile'); // Redirect to frontend
+      res.redirect('https://blog-sandy-xi-71.vercel.app/profile'); // Redirect to frontend
     });
   }
 );
@@ -274,14 +274,14 @@ const authenticate = (req, res, next) => {
 
 // Handle preflight OPTIONS requests
 // app.options('*', (req, res) => {
-//   res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+//   res.header('Access-Control-Allow-Origin', 'https://blog-sandy-xi-71.vercel.app');
 //   res.header('Access-Control-Allow-Credentials', 'true');
 //   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
 //   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 //   res.sendStatus(200);
 // });
 app.use(cors({
-  origin: 'http://localhost:5173', // Your frontend URL
+  origin: 'https://blog-sandy-xi-71.vercel.app', // Your frontend URL
   credentials: true, // Important for handling credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -289,7 +289,7 @@ app.use(cors({
 // app.use((req, res, next) => {
 //   console.log('CORS Headers being set:');
 //   console.log({
-//     'Access-Control-Allow-Origin': 'http://localhost:5173',
+//     'Access-Control-Allow-Origin': 'https://blog-sandy-xi-71.vercel.app',
 //     'Access-Control-Allow-Credentials': 'true',
 //   });
 //   next();

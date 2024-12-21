@@ -41,7 +41,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/current_user', {
+        const response = await axios.get('https://pulsee-y61s.onrender.com/api/current_user', {
           withCredentials: true,
         });
         if (response.data) {
@@ -68,7 +68,7 @@ const Profile = () => {
   //     setLoadingPosts(true);
   //     try {
   //       const response = await axios.get(
-  //         `http://localhost:3000/api/posts/${user.id}`,
+  //         `https://pulsee-y61s.onrender.com//api/posts/${user.id}`,
   //         { withCredentials: true }
   //       );
 
@@ -108,7 +108,7 @@ const Profile = () => {
     setLoadingPosts(true);
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/posts/author/${user.username}`, // Updated endpoint
+        `https://pulsee-y61s.onrender.com/api/posts/author/${user.username}`, // Updated endpoint
         { withCredentials: true }
       );
   
@@ -138,7 +138,7 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:3000/logout');
+      await axios.get('https://pulsee-y61s.onrender.com//logout');
       setUser(null);
       navigate('/login');
     } catch (error) {
@@ -149,7 +149,7 @@ const Profile = () => {
   const handleBioUpdate = async () => {
     try {
       await axios.post(
-        'http://localhost:3000/api/update_bio',
+        'https://pulsee-y61s.onrender.com/api/update_bio',
         { bio: newBio },
         { withCredentials: true }
       );
@@ -166,7 +166,7 @@ const Profile = () => {
   const handleUsernameUpdate = async () => {
     try {
       await axios.post(
-        'http://localhost:3000/api/update_username',
+        'https://pulsee-y61s.onrender.com//api/update_username',
         { username: newUsername },
         { withCredentials: true }
       );
