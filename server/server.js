@@ -15,6 +15,8 @@ const cookieSession = require("cookie-session");
 mongoose.connect('mongodb+srv://princepbad:rpwYcMJGHZ9osPyL@cluster0.po3ab.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  connectTimeoutMS: 10000, // 10 seconds
+  serverSelectionTimeoutMS: 10000,
   tls:true,
 })
 .then(() => console.log('Connected to MongoDB'))
