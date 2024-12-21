@@ -137,7 +137,7 @@ app.use(passport.session());
 passport.use(new GoogleStrategy({
   clientID: '620962779743-vvm3fmd55eqcel6uq99sbj4egf09s8u4.apps.googleusercontent.com',
   clientSecret: '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',
-  callbackURL: 'http://localhost:3000/auth/google/callback',
+  callbackURL: 'https://blog-sandy-xi-71.vercel.app/auth/google/callback',
 },
 async (accessToken, refreshToken, profile, done) => {
   try {
