@@ -17,7 +17,10 @@ mongoose.connect('mongodb+srv://princepbad:rpwYcMJGHZ9osPyL@cluster0.po3ab.mongo
   useUnifiedTopology: true,
   connectTimeoutMS: 10000, // 10 seconds
   serverSelectionTimeoutMS: 10000,
-  tls:true,
+  tls: true,
+  tlsInsecure: true, // Add this to handle TLS/SSL issues
+  ssl: true,
+  sslValidate: false // Add this to bypass SSL validation
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
