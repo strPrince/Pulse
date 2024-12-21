@@ -112,7 +112,7 @@ app.use(router);
 app.use("/api", router);
 
 
-
+console.log("updated.....");
 
 app.use(cors({ 
   origin: 'https://blog-sandy-xi-71.vercel.app',
