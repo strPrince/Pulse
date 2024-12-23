@@ -15,8 +15,7 @@ const cookieSession = require("cookie-session");
 mongoose.connect('mongodb://localhost:27017/BLOGGER', {
   useNewUrlParser: true,      // Parses MongoDB connection string
   useUnifiedTopology: true,  // Enables new connection management engine
-  serverSelectionTimeoutMS: 5000,
-  tls:true,
+  
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
@@ -123,72 +122,32 @@ app.use(express.urlencoded({ extended: true }));
  
 app.use(session({
   secret: 'my key',
-  resave: true, 
+  resave: true,
   saveUninitialized: true,
   store: MongoStore.create({
-    mongoUrl: 'mongodb://localhost:27017/',
+    mongoUrl: 'mongodb://localhost:27017/BLOGGER', // MongoDB URL for sessions
     collectionName: 'sessions',
     ttl: 24 * 60 * 60, // Session TTL in seconds (1 day)
     autoRemove: 'native', // Enable automatic removal of expired sessions
     touchAfter: 24 * 3600 // Only update session every 24 hours unless data changes
   }),
-  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000}, // Set to true if using https
-}));
-app.use(passport.initialize());
-// GET /api/current_user - Get current authenticated user
-app.get('/api/current_user', (req, res) => {
-  // Add CORS headers
-  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  // Check if user is authenticated
-  if (req.isAuthenticated() && req.user) {
-    // Return user details
-    res.status(200).json({
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      picture: req.user.picture,
-      googleId: req.user.googleId
-    });
-  } else {
-    // Return 401 if not authenticated
-    res.status(401).json({ 
-      error: 'Not authenticated',
-      message: 'Please log in to access this resource'
-    });
-  }
-});
-
-// Add session middleware before routes
-app.use(session({
-  secret: '15168416841618',  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: 'mongodb://localhost:27017/BLOGGER',
-    collectionName: 'usersessions'
-  }),
   cookie: { 
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'lax'
+    secure: false, // Set to true if using https
+    maxAge: 24 * 60 * 60 * 1000, // Session cookie expires after 1 day
+    sameSite: 'lax' // Prevent sending cookies with cross-site requests
   }
 }));
 
-// Initialize passport after session middleware
+// Passport initialization
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Google OAuth strategy setup
 passport.use(new GoogleStrategy({
   clientID: '584386715419-4r4vtvd92nmjjnrh9iod7sq54d0rkfj8.apps.googleusercontent.com',
   clientSecret: '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',
   callbackURL: 'http://localhost:3000/auth/google/callback',
-
-  
-},
-async (accessToken, refreshToken, profile, done) => {
+}, async (accessToken, refreshToken, profile, done) => {
   try {
     // Check if user already exists in the database
     let user = await User.findOne({ googleId: profile.id });
@@ -197,25 +156,24 @@ async (accessToken, refreshToken, profile, done) => {
     if (!user) {
       user = new User({
         googleId: profile.id,
-        name: profile.displayName, // Save the displayName
+        name: profile.displayName,
         email: profile.emails[0].value,
         picture: profile.photos ? profile.photos[0].value : '',
       });
 
       // Save the new user in the database
       await user.save();
+      console.log('New user created:', user);
     }
 
     // Return the user info
     return done(null, user);
-    console.log(profile); // This will show the profile object with all its properties
-
   } catch (err) {
     return done(err);
   }
 }));
 
-
+// Serialize and deserialize user for session management
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -229,79 +187,62 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-
-
-
-
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-
-
-
-
-store: MongoStore.create({
-   mongoUrl : 'mongodb://localhost:27017/BLOGGER', // MongoDB URL
-  collectionName: 'sessions', // Store sessions in this collection
-}),
-
-// Test route to check session
-app.get('/test-session', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.send(`Hello, ${req.user.name}`);
-  } else {
-    res.send('Session is not set or user is not authenticated');
-  }
-});
-
-
-app.get('/auth/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'], // Request user profile and email
-  })
-);
-
-
-app.use(express.json());
+// Route to handle the Google login
+app.get('/auth/google', passport.authenticate('google', {
+  scope: ['profile', 'email'],
+}));
 
 // Callback route for Google OAuth
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/', failureMessage: true }),
-  (req, res) => {
-    // Save user and authentication state in the session
-    req.session.user = req.user;
-    req.session.isAuthenticated = true;
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+  // Passport automatically attaches user to req.user if authentication is successful
+  req.session.user = req.user;
+  req.session.isAuthenticated = true;
 
-    req.session.save((err) => {
-      if (err) {
-        console.error('Session save error:', err);
-        return res.redirect('/error');
-      }
-      // Redirect to the frontend profile page
-      res.redirect('http://localhost:5173/profile');
-    });
-  }
-);
-
-
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Authentication error:', err);
-  res.redirect('/');
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.redirect('/error');
+    }
+    // Redirect to the frontend profile page after successful login
+    res.redirect('http://localhost:5173/profile');
+  });
 });
 
-
-
+// API route to get the current authenticated user
 app.get('/api/current_user', (req, res) => {
   if (req.isAuthenticated() && req.user) {
-    res.json(req.user); 
-   // Return user details if authenticated
+    // Return user details if authenticated
+    res.status(200).json({
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      picture: req.user.picture,
+      googleId: req.user.googleId
+    });
   } else {
-    res.status(401).json({ error: 'Not authenticated' });
+    res.status(401).json({
+      error: 'Not authenticated',
+      message: 'Please log in to access this resource'
+    });
   }
 });
+
+// Error handler
+// app.use((err, req, res, next) => {
+//   console.error('Authentication error:', err);
+//   res.redirect('/');
+// });
+
+
+
+// app.get('/api/current_user', (req, res) => {
+//   if (req.isAuthenticated() && req.user) {
+//     res.json(req.user); 
+//    // Return user details if authenticated
+//   } else {
+//     res.status(401).json({ error: 'Not authenticated' });
+//   }
+// });
 
  
 app.get('/logout', (req, res) => {
@@ -324,28 +265,14 @@ const authenticate = (req, res, next) => {
   }
 };
 
-// Handle preflight OPTIONS requests
-// app.options('*', (req, res) => {
-//   res.header('Access-Control-Allow-Origin', 'https://localhost:5173');
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   res.sendStatus(200);
-// });
+
 app.use(cors({
   origin: 'http://localhost:5173', // Your frontend URL
   credentials: true, // Important for handling credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-// app.use((req, res, next) => {
-//   console.log('CORS Headers being set:');
-//   console.log({
-//     'Access-Control-Allow-Origin': 'https://localhost:5173',
-//     'Access-Control-Allow-Credentials': 'true',
-//   });
-//   next();
-// });
+
 
 app.post('/save-username', authenticate, async (req, res) => {
   try {
