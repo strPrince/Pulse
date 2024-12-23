@@ -35,7 +35,7 @@ Blog.find().then((data) => {
 });
 
 app.use(cors({
-  origin: 'https://blog-sandy-xi-71.vercel.app', // Your frontend URL
+  origin: 'https://localhost:5173', // Your frontend URL
   credentials: true, // Important for handling credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -115,7 +115,7 @@ app.use("/api", router);
 console.log("updated.....");
 
 app.use(cors({ 
-  origin: 'https://blog-sandy-xi-71.vercel.app',
+  origin: 'https://localhost:5173',
   credentials: true 
 }));
 app.use(express.json()); // Parse JSON bodies
@@ -139,6 +139,7 @@ passport.use(new GoogleStrategy({
   clientSecret: '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',
   callbackURL: 'https://pulsee-y61s.onrender.com/auth/google/callback',
 
+  
 },
 async (accessToken, refreshToken, profile, done) => {
   try {
@@ -221,7 +222,8 @@ app.use(express.json());
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/', failureMessage: true }),
   (req, res) => {
-    req.session.user = req.user; // Explicitly save user in the session
+    // Save user and authentication state in the session
+    req.session.user = req.user;
     req.session.isAuthenticated = true;
 
     req.session.save((err) => {
@@ -229,10 +231,12 @@ app.get('/auth/google/callback',
         console.error('Session save error:', err);
         return res.redirect('/error');
       }
-      res.redirect('https://blog-sandy-xi-71.vercel.app/profile'); // Redirect to frontend
+      // Redirect to the frontend profile page
+      res.redirect('https://localhost:5173/profile');
     });
   }
 );
+
 
 
 // Error handler
@@ -275,14 +279,14 @@ const authenticate = (req, res, next) => {
 
 // Handle preflight OPTIONS requests
 // app.options('*', (req, res) => {
-//   res.header('Access-Control-Allow-Origin', 'https://blog-sandy-xi-71.vercel.app');
+//   res.header('Access-Control-Allow-Origin', 'https://localhost:5173');
 //   res.header('Access-Control-Allow-Credentials', 'true');
 //   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
 //   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 //   res.sendStatus(200);
 // });
 app.use(cors({
-  origin: 'https://blog-sandy-xi-71.vercel.app', // Your frontend URL
+  origin: 'https://localhost:5173', // Your frontend URL
   credentials: true, // Important for handling credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -290,7 +294,7 @@ app.use(cors({
 // app.use((req, res, next) => {
 //   console.log('CORS Headers being set:');
 //   console.log({
-//     'Access-Control-Allow-Origin': 'https://blog-sandy-xi-71.vercel.app',
+//     'Access-Control-Allow-Origin': 'https://localhost:5173',
 //     'Access-Control-Allow-Credentials': 'true',
 //   });
 //   next();
