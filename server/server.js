@@ -12,7 +12,7 @@ const cors = require('cors');
 const MongoStore = require('connect-mongo');
 const cookieSession = require("cookie-session");
 // Connect to Database
-mongoose.connect('mongodb+srv://princepbad:rpwYcMJGHZ9osPyL@cluster0.po3ab.mongodb.net/BLOGGER?retryWrites=true&w=majority&appName=Cluster0', {
+mongoose.connect('mongodb://localhost:27017/BLOGGER', {
   useNewUrlParser: true,      // Parses MongoDB connection string
   useUnifiedTopology: true,  // Enables new connection management engine
   serverSelectionTimeoutMS: 5000,
@@ -120,16 +120,19 @@ app.use(cors({
 }));
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true }));
-
+ 
 app.use(session({
   secret: 'my key',
-  resave: true,
+  resave: true, 
   saveUninitialized: true,
   store: MongoStore.create({
-    mongoUrl: 'mongodb+srv://princepbad:rpwYcMJGHZ9osPyL@cluster0.po3ab.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
+    mongoUrl: 'mongodb://localhost:27017/',
     collectionName: 'sessions',
+    ttl: 24 * 60 * 60, // Session TTL in seconds (1 day)
+    autoRemove: 'native', // Enable automatic removal of expired sessions
+    touchAfter: 24 * 3600 // Only update session every 24 hours unless data changes
   }),
-  cookie: { secure: false , maxAge: 24 * 60 * 60 * 1000}, // Set to true if using https
+  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000}, // Set to true if using https
 }));
 app.use(passport.initialize());
 // GET /api/current_user - Get current authenticated user
@@ -164,7 +167,7 @@ app.use(session({
   secret: '15168416841618',  resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: 'mongodb+srv://princepbad:rpwYcMJGHZ9osPyL@cluster0.po3ab.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
+    mongoUrl: 'mongodb://localhost:27017/BLOGGER',
     collectionName: 'usersessions'
   }),
   cookie: { 
@@ -181,7 +184,7 @@ app.use(passport.session());
 passport.use(new GoogleStrategy({
   clientID: '584386715419-4r4vtvd92nmjjnrh9iod7sq54d0rkfj8.apps.googleusercontent.com',
   clientSecret: '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',
-  callbackURL: 'https://pulsee-y61s.onrender.com/auth/google/callback',
+  callbackURL: 'http://localhost:3000/auth/google/callback',
 
   
 },
@@ -239,7 +242,7 @@ app.use(passport.session());
 
 
 store: MongoStore.create({
-   mongoUrl : 'mongodb+srv://princepbad:rpwYcMJGHZ9osPyL@cluster0.po3ab.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', // MongoDB URL
+   mongoUrl : 'mongodb://localhost:27017/BLOGGER', // MongoDB URL
   collectionName: 'sessions', // Store sessions in this collection
 }),
 
