@@ -132,6 +132,50 @@ app.use(session({
   cookie: { secure: false , maxAge: 24 * 60 * 60 * 1000}, // Set to true if using https
 }));
 app.use(passport.initialize());
+// GET /api/current_user - Get current authenticated user
+app.get('/api/current_user', (req, res) => {
+  // Add CORS headers
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Check if user is authenticated
+  if (req.isAuthenticated() && req.user) {
+    // Return user details
+    res.status(200).json({
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      picture: req.user.picture,
+      googleId: req.user.googleId
+    });
+  } else {
+    // Return 401 if not authenticated
+    res.status(401).json({ 
+      error: 'Not authenticated',
+      message: 'Please log in to access this resource'
+    });
+  }
+});
+
+// Add session middleware before routes
+app.use(session({
+  secret: '15168416841618',  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: 'mongodb+srv://princepbad:rpwYcMJGHZ9osPyL@cluster0.po3ab.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
+    collectionName: 'usersessions'
+  }),
+  cookie: { 
+    secure: false,
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax'
+  }
+}));
+
+// Initialize passport after session middleware
+app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new GoogleStrategy({

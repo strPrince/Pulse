@@ -42,10 +42,11 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const response = await axios.get('https://pulsee-y61s.onrender.com/api/current_user', {
-          withCredentials: true,
+          withCredentials: true,  // Make sure cookies are sent
         });
+
         if (response.data) {
-          setUser(response.data);
+          setUser(response.data);  // Set user data on successful fetch
         } else {
           setError('No user data found.');
         }
@@ -56,9 +57,9 @@ const Profile = () => {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, []);
-
 
   // Fetch user posts
   // useEffect(() => {
@@ -138,7 +139,7 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get('https://pulsee-y61s.onrender.com//logout');
+      await axios.get('https://pulsee-y61s.onrender.com/logout');
       setUser(null);
       navigate('/login');
     } catch (error) {
@@ -166,7 +167,7 @@ const Profile = () => {
   const handleUsernameUpdate = async () => {
     try {
       await axios.post(
-        'https://pulsee-y61s.onrender.com//api/update_username',
+        'https://pulsee-y61s.onrender.com/api/update_username',
         { username: newUsername },
         { withCredentials: true }
       );
