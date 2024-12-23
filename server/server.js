@@ -35,7 +35,7 @@ Blog.find().then((data) => {
 });
 
 app.use(cors({
-  origin: 'https://localhost:5173', // Your frontend URL
+  origin: 'http://localhost:5173', // Your frontend URL
   credentials: true, // Important for handling credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -115,7 +115,7 @@ app.use("/api", router);
 console.log("updated.....");
 
 app.use(cors({ 
-  origin: 'https://localhost:5173',
+  origin: 'http://localhost:5173',
   credentials: true 
 }));
 app.use(express.json()); // Parse JSON bodies
@@ -232,7 +232,7 @@ app.get('/auth/google/callback',
         return res.redirect('/error');
       }
       // Redirect to the frontend profile page
-      res.redirect('https://localhost:5173/profile');
+      res.redirect('http://localhost:5173/profile');
     });
   }
 );
@@ -286,7 +286,7 @@ const authenticate = (req, res, next) => {
 //   res.sendStatus(200);
 // });
 app.use(cors({
-  origin: 'https://localhost:5173', // Your frontend URL
+  origin: 'http://localhost:5173', // Your frontend URL
   credentials: true, // Important for handling credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
