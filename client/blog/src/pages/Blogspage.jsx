@@ -1,29 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Box, 
   Typography, 
   CircularProgress, 
-  Grid, 
+  Container, 
+  Avatar, 
   Card, 
   CardContent, 
-  CardMedia, 
   Button, 
   Chip, 
-  Avatar,
-  Container,
-  Stack
+  Stack 
 } from "@mui/material";
-import { 
-  BookmarkAdd, 
-  Share, 
-  RemoveRedEye, 
-  ChatBubbleOutline 
-} from '@mui/icons-material';
 import axios from "axios";
 
-const BlogCard = ({ blog, onUserClick }) => {
-  const [expanded, setExpanded] = useState(false);
+const BlogCard = ({ blog }) => {
+  const navigate = useNavigate();
+
+  const handleAuthorClick = (username) => {
+    navigate(`/user/${username}`); // Navigate to the user profile page with the username
+  };
 
   return (
     <Card 
@@ -49,8 +45,8 @@ const BlogCard = ({ blog, onUserClick }) => {
                 width: 48, 
                 height: 48, 
                 mr: 2,
-                bgcolor: '#ff6b6b', // Changed author avatar background color
-                boxShadow: '0 4px 8px rgba(255,107,107,0.3)' // Updated shadow to match new color
+                bgcolor: '#ff6b6b',
+                boxShadow: '0 4px 8px rgba(255,107,107,0.3)'
               }}
             >
               {blog.author[0].toUpperCase()}
@@ -60,7 +56,7 @@ const BlogCard = ({ blog, onUserClick }) => {
                 variant="subtitle1" 
                 fontWeight="bold" 
                 color="#4a90e2"
-                onClick={() => onUserClick(blog.author)}
+                onClick={() => handleAuthorClick(blog.author)}
                 sx={{ 
                   cursor: 'pointer',
                   '&:hover': { 
@@ -84,7 +80,7 @@ const BlogCard = ({ blog, onUserClick }) => {
             variant="h5" 
             fontWeight="bold" 
             mb={2}
-            color="#ff9f43" // Changed blog title color
+            color="#ff9f43"
             sx={{
               lineHeight: 1.4,
               letterSpacing: '0.5px'
@@ -92,14 +88,14 @@ const BlogCard = ({ blog, onUserClick }) => {
           >
             {blog.title}
           </Typography>
-          
+
           <Typography 
             variant="body1" 
             color="rgba(230,230,255,0.9)"
             sx={{
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: expanded ? 'unset' : 3,
+              WebkitLineClamp: 3,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               mb: 3,
@@ -107,27 +103,8 @@ const BlogCard = ({ blog, onUserClick }) => {
               letterSpacing: '0.3px'
             }}
           >
-            {expanded ? blog.content : blog.content.slice(0, 200)}
-            {!expanded && blog.content.length > 200 && '...'}
+            {blog.content}
           </Typography>
-
-          {blog.content.length > 200 && (
-            <Button 
-              size="small" 
-              onClick={() => setExpanded(!expanded)}
-              sx={{ 
-                color: '#4a90e2',
-                textTransform: 'none',
-                fontWeight: 500,
-                '&:hover': { 
-                  backgroundColor: 'rgba(74,144,226,0.1)',
-                  color: '#66a3ff'
-                } 
-              }}
-            >
-              {expanded ? 'Show Less' : 'Read More'}
-            </Button>
-          )}
 
           <Button
             component={Link}
@@ -147,33 +124,6 @@ const BlogCard = ({ blog, onUserClick }) => {
             View Full Post
           </Button>
         </Box>
-
-        {/* Blog Footer */}
-        <Box 
-          display="flex" 
-          justifyContent="space-between" 
-          alignItems="center" 
-          mt={3}
-        >
-          {/* Tags */}
-          <Stack direction="row" spacing={1.5}>
-            {blog.tags && blog.tags.map((tag, index) => (
-              <Chip 
-                key={index} 
-                label={tag} 
-                size="small" 
-                sx={{ 
-                  backgroundColor: 'rgba(74,144,226,0.15)', 
-                  color: '#4a90e2',
-                  fontWeight: 500,
-                  '&:hover': {
-                    backgroundColor: 'rgba(74,144,226,0.25)'
-                  }
-                }} 
-              />
-            ))}
-          </Stack>
-        </Box>
       </CardContent>
     </Card>
   );
@@ -182,27 +132,12 @@ const BlogCard = ({ blog, onUserClick }) => {
 const EnhancedBlogPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
 
   const fetchBlogs = async () => {
-    if (loading || !hasMore) return;
-
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:3000/api/blogs", {
-        params: {
-          limit: 10,
-          page: page
-        }
-      });
-
-      setBlogs(prevBlogs => 
-        page === 1 ? response.data : [...prevBlogs, ...response.data]
-      );
-      
-      setHasMore(response.data.length === 10);
-      setPage(prevPage => prevPage + 1);
+      const response = await axios.get("http://localhost:3000/api/blogs");
+      setBlogs(response.data);
     } catch (error) {
       console.error("Error fetching blogs:", error);
     } finally {
@@ -210,30 +145,9 @@ const EnhancedBlogPage = () => {
     }
   };
 
-  const handleScroll = useCallback(() => {
-    if (
-      window.innerHeight + document.documentElement.scrollTop >=
-      document.documentElement.offsetHeight - 100 &&
-      hasMore
-    ) {
-      fetchBlogs();
-    }
-  }, [hasMore]);
-
   useEffect(() => {
     fetchBlogs();
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleUserClick = async (username) => {
-    try {
-      const response = await axios.get(`http://localhost:3000/api/user/profile/${username}`);
-      console.log('User data:', response.data);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
 
   return (
     <Box 
@@ -244,7 +158,6 @@ const EnhancedBlogPage = () => {
       }}
     >
       <Container maxWidth="md">
-        {/* Page Header */}
         <Box mb={6}>
           <Typography 
             variant="h3" 
@@ -259,49 +172,19 @@ const EnhancedBlogPage = () => {
           >
             Latest Blogs
           </Typography>
-          <Typography 
-            variant="h6" 
-            color="rgba(230,230,255,0.9)" 
-            textAlign="center"
-            sx={{
-              maxWidth: '600px',
-              margin: '0 auto',
-              lineHeight: 1.6
-            }}
-          >
-            Discover insights, stories, and perspectives from our community
-          </Typography>
         </Box>
 
-        {/* Blog List */}
         {blogs.map((blog) => (
           <BlogCard 
             key={blog._id} 
-            blog={blog} 
-            onUserClick={handleUserClick} 
+            blog={blog}
           />
         ))}
 
-        {/* Loading Indicator */}
         {loading && (
-          <Box 
-            display="flex" 
-            justifyContent="center" 
-            mt={4}
-          >
+          <Box display="flex" justifyContent="center" mt={4}>
             <CircularProgress sx={{ color: '#4a90e2' }} />
           </Box>
-        )}
-
-        {/* End of Blogs */}
-        {!hasMore && blogs.length > 0 && (
-          <Typography 
-            textAlign="center" 
-            color="rgba(230,230,255,0.7)"
-            mt={4}
-          >
-            No more blogs to load
-          </Typography>
         )}
       </Container>
     </Box>

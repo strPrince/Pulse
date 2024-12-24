@@ -18,6 +18,8 @@ import {
 } from '@mui/material';
 import UpdateIcon from '@mui/icons-material/Update';
 import EditIcon from '@mui/icons-material/Edit';
+import HomeIcon from '@mui/icons-material/Home';
+
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 
@@ -220,7 +222,23 @@ const Profile = () => {
 
   return (
     <div className='' style={{height: '100vh' ,  background: 'linear-gradient(to bottom, #0f0f1a, #1a1a2e)'}}>
-    <Box sx={{ padding: 2, maxWidth: 900, margin: 'auto'  }}>
+        <IconButton
+  onClick={() => navigate('/')}
+  sx={{ 
+    color: 'white', 
+    marginBottom: 2,
+   
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      transform: 'scale(1.1)',
+    },
+    transition: 'all 0.2s ease-in-out'
+  }}
+  aria-label="Return to home"
+  title="Return to home"
+>
+  <HomeIcon />
+</IconButton>    <Box sx={{ padding: 2, maxWidth: 900, margin: 'auto'  }}>
       {/* Profile Header */}
       <Card sx={{ marginBottom: 2, padding: 2, position: 'relative',backgroundColor:'#1C232D',color:'white' }}>
         <Box display="flex" flexDirection={isMobile ? 'column' : 'row'} alignItems="center">

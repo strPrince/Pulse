@@ -148,16 +148,35 @@ const BlogDetailsPage = () => {
     if (!newComment.trim()) return;
 
     try {
+      // Add loading state while submitting
+      setIsLoading(true);
+      
       const response = await axios.post(
         `${API_BASE_URL}/comments/${id}`,
-        { content: newComment },
-        { withCredentials: true }
+        { 
+          content: newComment,
+          blogId: id // Ensure blogId is included
+        },
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
-      setComments((prevComments) => [response.data, ...prevComments]);
-      setNewComment('');
+
+      if (response.data) {
+        setComments((prevComments) => [response.data, ...prevComments]);
+        setNewComment('');
+      } else {
+        throw new Error('No data received from server');
+      }
+
     } catch (err) {
       console.error('Error posting comment:', err);
-      alert("Error posting comment. Please try again.");
+      alert(err.response?.data?.message || "Error posting comment. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -257,7 +276,7 @@ const BlogDetailsPage = () => {
                 {comments.map((comment) => (
                   <div key={comment._id} className="bg-gray-800/50 p-5 rounded-xl border border-gray-700">
                     <div className="flex justify-between items-center mb-3">
-                      <p className="text-white font-medium">{comment.author}</p>
+                      <p className="text-white font-medium">@{comment.author}</p>
                       <span className="text-xs text-gray-400">
                         {new Date(comment.createdAt).toLocaleString()}
                       </span>

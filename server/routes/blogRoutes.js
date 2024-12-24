@@ -1,5 +1,6 @@
 const express = require('express');
 const Blog = require('../models/Blog');
+const User = require('../models/User');
 const router = express.Router();
 
 router.get('/api/blogs', async (req, res) => {
@@ -19,6 +20,7 @@ router.get('/api/blogs/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch blog' });
   }
 });
+
 
 router.post('api/blogs', async (req, res) => {
   try {
