@@ -166,6 +166,13 @@ const Profile = () => {
 
   const handleUsernameUpdate = async () => {
     try {
+      // Check if username is available
+      if (!newUsername) {
+        setMessage('Username cannot be empty');
+        setSeverity('error');
+        return;
+      }
+
       await axios.post(
         'http://localhost:3000/api/update_username',
         { username: newUsername },
@@ -176,7 +183,11 @@ const Profile = () => {
       setMessage('Username updated successfully!');
       setSeverity('success');
     } catch (err) {
-      setMessage('Error updating username.');
+      if (err.response?.status === 409) {
+        setMessage('Username already taken');
+      } else {
+        setMessage('Error updating username');
+      }
       setSeverity('error');
     }
   };

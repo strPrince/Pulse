@@ -1,262 +1,63 @@
-const express = require("express");
-const router = express.Router();
-const Blog = require("./models/Blog");
-const mongoose = require('mongoose');
-const passport = require('passport');
+require('dotenv').config();
+const express = require('express');
 const session = require('express-session');
-const User = require('./models/User');
-const Comment = require('./models/Comment');
-// const GoAuth = require('./routes/GoogleAuth');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const cors = require('cors');
+const passport = require('./config/passport'); // Import the passport configuration
+const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
-const cookieSession = require("cookie-session");
-// Connect to Database
-mongoose.connect('mongodb://localhost:27017/BLOGGER', {
-  useNewUrlParser: true,      // Parses MongoDB connection string
-  useUnifiedTopology: true,  // Enables new connection management engine
-  
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('MongoDB connection error:', err));
+const authRoutes = require('./routes/authRoutes'); // Import the auth routes
+const blogRoutes = require('./routes/blogRoutes'); // Import the blog routes
+const commentRoutes = require('./routes/commentRoutes'); // Import the comment routes
+const userRoutes = require('./routes/userRoutes'); // Import the user routes
+const cors = require('cors');
+const User = require('./models/User');
+const Blog = require('./models/Blog');
+const app = express();
 
-app = express();
+// Middleware
 
-
-
-
-
-// Log data from blog collection
-Blog.find().then((data) => {
-  console.log("Blog data:", data);
-}).catch((error) => {
-  console.error("Error fetching blog data:", error);
-});
-
-app.use(cors({
-  origin: 'http://localhost:5173', // Your frontend URL
-  credentials: true, // Important for handling credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// GET /api/blogs - Fetch all blogs
-router.get("/api/blogs", async (req, res) => {
-  try {
-    const blogs = await Blog.find();
-    res.status(200).json(blogs);
-   
- 
-  } catch (err) {
-    console.error('Error fetching blogs:', err);
-    res.status(500).json({ error: "Failed to fetch blogs" });
-  }
-});
-
-// POST /api/blogs - Create a new blog
-
-
-// GET /api/blogs/:id - Fetch a single blog
-router.get("/api/blogs/:id", async (req, res) => {
-  try {
-    const blog = await Blog.findById(req.params.id);
-    if (!blog) {
-      res.status(404).json({ error: "Blog not found" });
-      return;
-    }
-    res.status(200).json(blog);
-    console.log(blog);
-  } catch (err) {
-    console.error('Error fetching blog:', err);
-    res.status(500).json({ error: "Failed to fetch blog" });
-  }
-});
-
-// PUT /api/blogs/:id - Update a blog
-router.put("/api/blogs/:id", async (req, res) => {
-  try {
-    const blog = await Blog.findByIdAndUpdate(req.params.id, {
-      ...req.body,
-      updatedAt: Date.now()
-    }, { new: true });
-    if (!blog) {
-      res.status(404).json({ error: "Blog not found" });
-      return;
-    }
-    res.status(200).json(blog);
-  } catch (err) {
-    console.error('Error updating blog:', err);
-    res.status(500).json({ error: "Failed to update blog" });
-  }
-});
-
-// DELETE /api/blogs/:id - Delete a blog
-router.delete("/api/blogs/:id", async (req, res) => {
-  try {
-    const blog = await Blog.findByIdAndDelete(req.params.id);
-    if (!blog) {
-      res.status(404).json({ error: "Blog not found" });
-      return;
-    }
-    res.status(200).json({ message: "Blog deleted successfully" });
-  } catch (err) {
-    console.error('Error deleting blog:', err);
-    res.status(500).json({ error: "Failed to delete blog" });
-  }
-});
-
-
-
-app.use(router);
-app.use("/api", router);
-
-
-console.log("updated.....");
-
-app.use(cors({ 
-  origin: 'http://localhost:5173',
-  credentials: true 
-}));
-app.use(express.json()); // Parse JSON bodies
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
- 
-app.use(session({
-  secret: 'my key',
-  resave: true,
-  saveUninitialized: true,
-  store: MongoStore.create({
-    mongoUrl: 'mongodb://localhost:27017/BLOGGER', // MongoDB URL for sessions
-    collectionName: 'sessions',
-    ttl: 24 * 60 * 60, // Session TTL in seconds (1 day)
-    autoRemove: 'native', // Enable automatic removal of expired sessions
-    touchAfter: 24 * 3600 // Only update session every 24 hours unless data changes
-  }),
-  cookie: { 
-    secure: false, // Set to true if using https
-    maxAge: 24 * 60 * 60 * 1000, // Session cookie expires after 1 day
-    sameSite: 'lax' // Prevent sending cookies with cross-site requests
-  }
-}));
 
-// Passport initialization
+// Session middleware
+const corsOptions = {
+  origin: 'http://localhost:5173', // Your frontend's origin
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+};
+app.use(cors(corsOptions));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default_secret',
+  resave: false, // Avoid unnecessary session rewrites
+  saveUninitialized: false, // Don't create a session until something is stored
+  store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/BLOGGER',
+      collectionName: 'sessions',
+      ttl: 24 * 60 * 60, // 1 day
+  }),
+  cookie: {
+      secure: false, // Use true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+      sameSite: 'lax', // Protect against CSRF
+  },
+}));
+// Initialize passport after session middleware
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Google OAuth strategy setup
-passport.use(new GoogleStrategy({
-  clientID: '584386715419-4r4vtvd92nmjjnrh9iod7sq54d0rkfj8.apps.googleusercontent.com',
-  clientSecret: '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',
-  callbackURL: 'http://localhost:3000/auth/google/callback',
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    // Check if user already exists in the database
-    let user = await User.findOne({ googleId: profile.id });
+// Routes
+app.use( blogRoutes);
+app.use( commentRoutes);
+app.use( userRoutes);
+app.use( authRoutes);
 
-    // If user doesn't exist, create a new one
-    if (!user) {
-      user = new User({
-        googleId: profile.id,
-        name: profile.displayName,
-        email: profile.emails[0].value,
-        picture: profile.photos ? profile.photos[0].value : '',
-      });
-
-      // Save the new user in the database
-      await user.save();
-      console.log('New user created:', user);
-    }
-
-    // Return the user info
-    return done(null, user);
-  } catch (err) {
-    return done(err);
-  }
-}));
-
-// Serialize and deserialize user for session management
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (err) {
-    done(err);
-  }
-});
-
-// Route to handle the Google login
-app.get('/auth/google', passport.authenticate('google', {
-  scope: ['profile', 'email'],
-}));
-
-// Callback route for Google OAuth
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  // Passport automatically attaches user to req.user if authentication is successful
-  req.session.user = req.user;
-  req.session.isAuthenticated = true;
-
-  req.session.save((err) => {
-    if (err) {
-      console.error('Session save error:', err);
-      return res.redirect('/error');
-    }
-    // Redirect to the frontend profile page after successful login
-    res.redirect('http://localhost:5173/profile');
-  });
-});
-
-// API route to get the current authenticated user
-app.get('/api/current_user', (req, res) => {
-  if (req.isAuthenticated() && req.user) {
-    // Return user details if authenticated
-    res.status(200).json({
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      picture: req.user.picture,
-      googleId: req.user.googleId
-    });
-  } else {
-    res.status(401).json({
-      error: 'Not authenticated',
-      message: 'Please log in to access this resource'
-    });
-  }
-});
-
-// Error handler
-// app.use((err, req, res, next) => {
-//   console.error('Authentication error:', err);
-//   res.redirect('/');
-// });
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/BLOGGER', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 
-
-// app.get('/api/current_user', (req, res) => {
-//   if (req.isAuthenticated() && req.user) {
-//     res.json(req.user); 
-//    // Return user details if authenticated
-//   } else {
-//     res.status(401).json({ error: 'Not authenticated' });
-//   }
-// });
-
- 
-app.get('/logout', (req, res) => {
- 
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Could not log out' });
-    }
-    
-    // Clear the session cookie
-    res.clearCookie('connect.sid'); // Default session cookie name
-    res.json({ message: 'Logged out successfully' });
-  });
-});
 const authenticate = (req, res, next) => {
   if (req.isAuthenticated()) {
     next();
@@ -266,12 +67,8 @@ const authenticate = (req, res, next) => {
 };
 
 
-app.use(cors({
-  origin: 'http://localhost:5173', // Your frontend URL
-  credentials: true, // Important for handling credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+
+
 
 
 app.post('/save-username', authenticate, async (req, res) => {
@@ -383,23 +180,8 @@ app.post('/api/blog-posts', async (req, res) => {
   }
 });
 
-// Route to update social media links
-app.post('/api/update_social_links', async (req, res) => {
-  const { userId, platform, link } = req.body;
 
-  try {
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Dynamically update the link
-    user[platform] = link;
-    await user.save();
-
-    res.status(200).json({ message: 'Social link updated successfully', user });
-  } catch (err) {
-    res.status(500).json({ message: 'Error updating social link', error: err.message });
-  }
-});
 
 app.post('/api/update_bio', async (req, res) => {
   const { bio } = req.body; 
@@ -419,87 +201,87 @@ app.post('/api/update_bio', async (req, res) => {
 });
 
 
-app.get('/api/users/username/:username', async (req, res) => {
-  try {
-    const { username } = req.params;
+// app.get('/api/users/username/:username', async (req, res) => {
+//   try {
+//     const { username } = req.params;
     
-    const user = await User.findOne({ username: username });
+//     const user = await User.findOne({ username: username });
      
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
 
-    // Return user data without sensitive information
-    const userData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      bio: user.bio,
-      picture: user.picture,
+//     // Return user data without sensitive information
+//     const userData = {
+//       id: user._id,
+//       username: user.username,
+//       email: user.email,
+//       bio: user.bio,
+//       picture: user.picture,
      
-      // Add any other fields you want to include
-    };
+//       // Add any other fields you want to include
+//     };
 
-    res.json(userData);
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-
+//     res.json(userData);
+//   } catch (error) {
+//     console.error('Error fetching user:', error);
+//     res.status(500).json({ message: 'Server error', error: error.message });
+//   }
+// });
 
 
-// GET: Get all comments for a post
-// GET: Get all comments for a post
-app.post('/api/comments/:postId', async (req, res) => {
-  console.log('Session Data:', req.session); // Debugging session data
 
-  if (!req.session.user) {
-    return res.status(401).json({ message: 'You must be logged in to comment' });
-  }
-
-  const { content } = req.body;
-  const { postId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(postId)) {
-    return res.status(400).json({ message: 'Invalid post ID' });
-  }
-
-  try {
-    const newComment = new Comment({
-      postId,
-      content,
-      author: req.session.user.username,
-    });
-
-    const savedComment = await newComment.save();
-    res.status(201).json(savedComment);
-  } catch (err) {
-    console.error('Error adding comment:', err);
-    res.status(500).json({ message: 'Error adding comment', error: err });
-  }
-});
 
 // GET: Get all comments for a post
-app.get('/api/comments/:postId', async (req, res) => {
-  console.log('Fetching comments for postId:', req.params.postId);  // Add this log for debugging
+// GET: Get all comments for a post
+// app.post('/api/comments/:postId', async (req, res) => {
+//   console.log('Session Data:', req.session); // Debugging session data
 
-  const { postId } = req.params;
+//   if (!req.session.user) {
+//     return res.status(401).json({ message: 'You must be logged in to comment' });
+//   }
 
-  // Validate if postId is a valid ObjectId
-  if (!mongoose.Types.ObjectId.isValid(postId)) {
-    return res.status(400).json({ message: 'Invalid post ID' });
-  }
+//   const { content } = req.body;
+//   const { postId } = req.params;
 
-  try {
-    const comments = await Comment.find({ postId }).sort({ createdAt: -1 });
-    res.status(200).json(comments);
-  } catch (err) {
-    console.error('Error fetching comments:', err);
-    res.status(500).json({ message: 'Error fetching comments', error: err });
-  }
-});
+//   if (!mongoose.Types.ObjectId.isValid(postId)) {
+//     return res.status(400).json({ message: 'Invalid post ID' });
+//   }
+
+//   try {
+//     const newComment = new Comment({
+//       postId,
+//       content,
+//       author: req.session.user.username,
+//     });
+
+//     const savedComment = await newComment.save();
+//     res.status(201).json(savedComment);
+//   } catch (err) {
+//     console.error('Error adding comment:', err);
+//     res.status(500).json({ message: 'Error adding comment', error: err });
+//   }
+// });
+
+// GET: Get all comments for a post
+// app.get('/api/comments/:postId', async (req, res) => {
+//   console.log('Fetching comments for postId:', req.params.postId);  // Add this log for debugging
+
+//   const { postId } = req.params;
+
+//   // Validate if postId is a valid ObjectId
+//   if (!mongoose.Types.ObjectId.isValid(postId)) {
+//     return res.status(400).json({ message: 'Invalid post ID' });
+//   }
+
+//   try {
+//     const comments = await Comment.find({ postId }).sort({ createdAt: -1 });
+//     res.status(200).json(comments);
+//   } catch (err) {
+//     console.error('Error fetching comments:', err);
+//     res.status(500).json({ message: 'Error fetching comments', error: err });
+//   }
+// });
 
 app.post('/api/update_username', async (req, res) => {
   try {
@@ -622,7 +404,7 @@ app.get('/api/posts/author/:username', async (req, res) => {
   const { username } = req.params;
 
   try {
-    // Find all posts where the `author` matches the provided username
+    // Find all posts where the author matches the provided username
     const posts = await Blog.find({ author: username }).sort({ createdAt: -1 });
 
     if (posts.length === 0) {
@@ -638,8 +420,13 @@ app.get('/api/posts/author/:username', async (req, res) => {
 
 
 
-const port = 3000;
-app.listen(port, function (err) {
-  if (err) console.log(err);
-  console.log("Server listening on PORT", port);
+
+
+
+
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
