@@ -7,6 +7,8 @@ import CreatePost from './pages/CreatePost.jsx';
 import BlogPage from './pages/Blogspage.jsx';
 import PublicProfile from './pages/userpublicprofile.jsx';
 import AboutUsPage from './pages/Aboutus.jsx';import ContactUs from './pages/conus.jsx';
+import Register from './pages/register.jsx';
+import EditBlog from './pages/editblog.jsx';
 function App() {
   
 
@@ -25,6 +27,8 @@ function App() {
         <Route path="/user/:username" element={<PublicProfile />} />
         <Route path="/about" element={<AboutUsPage />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/Signup" element={<Register />} />
+        <Route path="/edit-blog/:id" element={<EditBlog />} />
       </Routes>
     </BrowserRouter>  
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { FaArrowUp, FaArrowDown, FaBookmark, FaShare, FaTwitter, FaFacebook, FaLinkedin } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaBookmark, FaShare, FaTwitter, FaFacebook, FaLinkedin,FaEdit, FaTrash } from "react-icons/fa";
 
 const API_BASE_URL = "http://localhost:3000/api";
 
@@ -13,6 +13,7 @@ const BlogDetailsPage = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showShareMenu, setShowShareMenu] = useState(false);
@@ -73,6 +74,24 @@ const BlogDetailsPage = () => {
       }
     }
   };
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/current_user", {
+        withCredentials: true,
+      });
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+    }
+  };
+
+  useEffect(() => {
+    
+    fetchCurrentUser();
+  }, []);
+  // {console.log("currentUser ",currentUser)}
+
+
 
   const shareableLink = `http://localhost:5173/blog/${blog?._id}`;
   
@@ -107,7 +126,18 @@ const BlogDetailsPage = () => {
     
     window.open(shareUrl, '_blank', 'width=600,height=400');
   };
-
+  const handleDeleteClick = async () => {
+    if (window.confirm("Are you sure you want to delete this blog?")) {
+      try {
+        await axios.delete(`http://localhost:3000/api/blogs/${blog._id}`, {
+          withCredentials: true,
+        });
+        onDelete(blog._id); // Call the onDelete function passed down to remove blog from UI
+      } catch (error) {
+        console.error("Error deleting blog:", error);
+      }
+    }
+  };
   const ShareMenu = () => (
     <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
       <div className="py-1" role="menu">
@@ -221,7 +251,24 @@ const BlogDetailsPage = () => {
                   >
                     <FaShare className="text-lg" />
                   </button>
-                  {showShareMenu && <ShareMenu />}
+
+                  
+                  {blog.author === currentUser.username && (
+    <>
+      <button
+        className="hover:text-blue-400 transition-colors"
+        onClick={() => Navigate(`/edit/${blog._id}`)}
+      >
+        <FaEdit className="text-lg" />
+      </button>
+      <button
+        className="hover:text-red-400 transition-colors"
+        onClick={() => handleDeleteClick(blog._id)}
+      >
+        <FaTrash className="text-lg" />
+      </button>
+    </>
+  )}                  {showShareMenu && <ShareMenu />}
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-white mb-3">{blog.title}</h1>
@@ -235,21 +282,25 @@ const BlogDetailsPage = () => {
             </div>
 
             <div className="prose prose-invert max-w-none">
-              <div className="mb-8">
-                {blog.image && (
-                  <img 
-                    src={blog.image} 
-                    alt="Blog cover" 
-                    className="w-full rounded-xl mb-6 object-cover shadow-lg"
-                    loading="lazy"
-                  />
-                )}
-                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-lg">
-                  {blog.content}
-                </p>
-              </div>
-            </div>
-
+  <div className="mb-8">
+    {blog.image && (
+      <img 
+        src={blog.image} 
+        alt="Blog cover" 
+        className="w-full rounded-xl mb-6 object-cover shadow-lg"
+        loading="lazy"
+      />
+    )}
+    <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-lg"
+      dangerouslySetInnerHTML={{
+        __html: blog.content
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:underline">$1</a>')
+      }}
+    />
+  </div>
+</div>
             <form onSubmit={handleSubmitComment} className="mt-8">
               <textarea
                 value={newComment}

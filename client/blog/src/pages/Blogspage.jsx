@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Box, 
@@ -10,15 +10,39 @@ import {
   CardContent, 
   Button, 
   Chip, 
-  Stack 
+  Stack,
+  IconButton 
 } from "@mui/material";
 import axios from "axios";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-const BlogCard = ({ blog }) => {
+const BlogCard = ({ blog, currentUser, onDelete }) => {
   const navigate = useNavigate();
 
   const handleAuthorClick = (username) => {
-    navigate(`/user/${username}`); // Navigate to the user profile page with the username
+    if (currentUser && currentUser.username === username) {
+      navigate('/profile');
+    } else {
+      navigate(`/user/${username}`); // Navigate to the user profile page with the username
+    }
+  };
+
+  const handleEditClick = () => {
+    navigate(`/edit-blog/${blog._id}`); // Navigate to the blog edit page
+  };
+
+  const handleDeleteClick = async () => {
+    if (window.confirm("Are you sure you want to delete this blog?")) {
+      try {
+        await axios.delete(`http://localhost:3000/api/blogs/${blog._id}`, {
+          withCredentials: true,
+        });
+        onDelete(blog._id); // Call the onDelete function passed down to remove blog from UI
+      } catch (error) {
+        console.error("Error deleting blog:", error);
+      }
+    }
   };
 
   return (
@@ -72,22 +96,54 @@ const BlogCard = ({ blog }) => {
               </Typography>
             </Box>
           </Box>
+          
+          {/* Moved Edit and Delete Buttons here */}
+          {currentUser && currentUser.username === blog.author && (
+            <Box display="flex" alignItems="center">
+              <IconButton 
+                onClick={handleEditClick} 
+                sx={{ color: '#ff9f43', mr: 2 }}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton 
+                onClick={() => handleDeleteClick(blog._id)} 
+                sx={{ color: '#ff6b6b' }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          )}
         </Box>
 
         {/* Blog Content */}
         <Box>
-          <Typography 
-            variant="h5" 
-            fontWeight="bold" 
-            mb={2}
-            color="#ff9f43"
-            sx={{
-              lineHeight: 1.4,
-              letterSpacing: '0.5px'
-            }}
-          >
-            {blog.title}
-          </Typography>
+          <Box display="flex" alignItems="center" mb={2}>
+            <Typography 
+              variant="h5" 
+              fontWeight="bold" 
+              color="#ff9f43"
+              sx={{
+                lineHeight: 1.4,
+                letterSpacing: '0.5px',
+                flex: 1
+              }}
+            >
+              {blog.title}
+            </Typography>
+            <Chip
+              label={`${blog.voteScore} votes`}
+              sx={{
+                backgroundColor: 'rgba(74,144,226,0.2)',
+                color: '#4a90e2',
+                fontWeight: 'bold',
+                ml: 2,
+                '& .MuiChip-label': {
+                  px: 2
+                }
+              }}
+            />
+          </Box>
 
           <Typography 
             variant="body1" 
@@ -102,10 +158,13 @@ const BlogCard = ({ blog }) => {
               lineHeight: 1.6,
               letterSpacing: '0.3px'
             }}
-          >
-            {blog.content}
-          </Typography>
-
+            dangerouslySetInnerHTML={{
+              __html: blog.content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="color: #4a90e2; text-decoration: none;">$1</a>')
+            }}
+          />
           <Button
             component={Link}
             to={`/blog/${blog._id}`}
@@ -132,6 +191,7 @@ const BlogCard = ({ blog }) => {
 const EnhancedBlogPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchBlogs = async () => {
     setLoading(true);
@@ -145,9 +205,25 @@ const EnhancedBlogPage = () => {
     }
   };
 
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/current_user", {
+        withCredentials: true,
+      });
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+    }
+  };
+
   useEffect(() => {
     fetchBlogs();
+    fetchCurrentUser();
   }, []);
+
+  const handleDeleteBlog = (blogId) => {
+    setBlogs((prevBlogs) => prevBlogs.filter((blog) => blog._id !== blogId));
+  };
 
   return (
     <Box 
@@ -158,26 +234,12 @@ const EnhancedBlogPage = () => {
       }}
     >
       <Container maxWidth="md">
-        <Box mb={6}>
-          <Typography 
-            variant="h3" 
-            color="#4a90e2" 
-            fontWeight="bold" 
-            textAlign="center"
-            mb={3}
-            sx={{
-              textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-              letterSpacing: '1px'
-            }}
-          >
-            Latest Blogs
-          </Typography>
-        </Box>
-
         {blogs.map((blog) => (
           <BlogCard 
             key={blog._id} 
-            blog={blog}
+            blog={blog} 
+            currentUser={currentUser} 
+            onDelete={handleDeleteBlog} 
           />
         ))}
 

@@ -76,10 +76,10 @@ app.post('/save-username', authenticate, async (req, res) => {
     console.log('Session user:', req.session.user);
     
     // Input validation
-    const { username } = req.body;
-    if (!username || !/^[a-zA-Z0-9._@]+$/.test(username)) {
+    const { username, email } = req.body;
+    if ((!username && !email) || (username && !/^[a-zA-Z0-9._@]+$/.test(username))) {
       return res.status(400).json({ 
-        message: 'Valid username is required' 
+        message: 'Valid username or email is required' 
       });
     }
 
@@ -98,10 +98,10 @@ app.post('/save-username', authenticate, async (req, res) => {
         // Create new user
         const newUser = new User({
           _id: req.user._id,
-          username,
-        
+          username: username || email,
+          email
         });
- window.location.reload()
+        window.location.reload()
 
         await newUser.save();
         
@@ -110,6 +110,7 @@ app.post('/save-username', authenticate, async (req, res) => {
           message: 'User saved successfully',
           user: {
             username: newUser.username,
+            email: newUser.email,
             id: newUser._id
           }
         });
@@ -120,20 +121,18 @@ app.post('/save-username', authenticate, async (req, res) => {
         { _id: req.user._id },
         { 
           $set: { 
-            username,
-            
+            username: username || email,
+            email
           } 
         }
       );
-
-
-   
 
       return res.json({
         success: true,
         message: 'User updated successfully',
         user: {
-          username,
+          username: username || email,
+          email,
           id: req.user._id
         }
       });
@@ -159,6 +158,7 @@ app.post('/save-username', authenticate, async (req, res) => {
 app.post('/api/blog-posts', async (req, res) => {
   try {
     const { title, content, tags, author } = req.body;
+    console.log('Received blog post data:', req.body);
 
     if (!title || !content || !author) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -180,6 +180,33 @@ app.post('/api/blog-posts', async (req, res) => {
   }
 });
 
+// app.get('/api/blogs/:id', (req, res) => {
+//   const blog = blogs.find(b => b.id === req.params.id);
+//   if (blog) {
+//     res.json(blog);
+//   } else {
+//     res.status(404).send({ message: 'Blog not found' });
+//   }
+// });
+
+// Update a blog by ID
+app.put('/api/blogs/:id', async (req, res) => {
+  try {
+    const blog = await Blog.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true }
+    );
+    
+    if (!blog) {
+      return res.status(404).send({ message: 'Blog not found' });
+    }
+    
+    res.json({ message: 'Blog updated successfully', blog });
+  } catch (error) {
+    res.status(500).send({ message: 'Error updating blog', error: error.message });
+  }
+});
 
 
 
@@ -419,7 +446,30 @@ app.get('/api/posts/author/:username', async (req, res) => {
 });
 
 
+app.delete('/api/blogs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Blog ID:', id);
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
 
+    // Check if blog.author is a string (username) or ObjectId
+    const authorMatch = typeof blog.author === 'string' 
+      ? blog.author === req.user.username  // Compare usernames
+      : blog.author.equals(req.user._id);  // Compare ObjectIds
+
+    if (!authorMatch) {
+      return res.status(403).json({ message: 'You are not authorized to delete this blog' });
+    }
+
+    await Blog.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Blog deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 
 
