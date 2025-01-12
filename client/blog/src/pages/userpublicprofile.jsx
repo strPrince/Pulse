@@ -284,13 +284,14 @@ console.log(isFollowing)
                 </Box>
 
                 <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+                  
                   <Button
-                    variant={isFollowing ? "outlined" : "contained"}
+                    variant={isFollowing ? "outlined" : "contained"} 
                     startIcon={isFollowing ? <Cancel /> : <PersonAdd />}
                     onClick={handleFollow}
                     sx={{
                       backgroundColor: isFollowing ? "transparent" : "#4a90e2",
-                      borderColor: isFollowing ? "#ff6b6b" : "transparent",
+                      borderColor: isFollowing ? "#ff6b6b" : "transparent", 
                       color: isFollowing ? "#ff6b6b" : "#fff",
                       "&:hover": {
                         backgroundColor: isFollowing ? "rgba(255, 107, 107, 0.1)" : "#66a3ff",
@@ -298,7 +299,7 @@ console.log(isFollowing)
                       },
                     }}
                   >
-                    {isFollowing ? "Unfollow" : "Follow"}
+                    {isFollowing ? "Following" : "Follow"}
                   </Button>
 
                   <Button

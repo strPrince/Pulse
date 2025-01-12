@@ -37,10 +37,43 @@ const Profile = () => {
   const [severity, setSeverity] = useState('success');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [posts, setPosts] = useState([]);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+
+
+  useEffect(() => {
+    const fetchfollowersandfollowing = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/followersandfollowing', {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log(response.data);
+        setFollowersCount(response.data.followersCount);
+        setFollowers(response.data.followers);
+        setFollowing(response.data.following);
+        setFollowingCount(response.data.followingCount);
+      } catch (err) {
+        console.error('Error fetching followers and following:', err);
+        setError('Failed to fetch followers and following.');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchfollowersandfollowing();
+    // Add an empty dependency array to ensure the effect runs only once on component mount.
+  }, []);
+  
+
 
   // Fetch user data
   useEffect(() => {
@@ -311,10 +344,15 @@ const handleDeleteClick = async (postId) => {
               <Typography variant="body2" color='lightblue' sx={{textDecoration1:'underline'}}>
                 @{user?.username || 'No username'} 
               </Typography>
-              {/* <Typography variant="body2" sx={{ color: 'lightgray' }}>
-                {user?.email || 'No email'}6
-              </Typography> */}
-              {/*  *this is for just testing purposes */}
+              <Box display="flex" gap={2} mt={1}>
+                <Typography variant="body2">
+                  <strong>{followersCount || 0}</strong> Followers
+                  {/* {console.log(followersCount)}   */}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>{followingCount || 0}</strong> Following
+                </Typography>
+              </Box>
               <Typography variant="body1" sx={{ marginTop: 1 }}>
                 {getUserBio()}
               </Typography>
@@ -348,8 +386,8 @@ const handleDeleteClick = async (postId) => {
               indicatorColor="primary"
             >
               <Tab label="Posts" sx={{ color: 'white' }} />
+              <Tab label="Followings" sx={{ color: 'white' }} />
               <Tab label="Followers" sx={{ color: 'white' }} />
-              <Tab label="Following" sx={{ color: 'white' }} />
             </Tabs>
             <Box p={2}>
               {tabIndex === 0 && (
@@ -454,8 +492,63 @@ const handleDeleteClick = async (postId) => {
                   )}
                 </div>
               )}
-              {tabIndex === 1 && <Typography color="white">Followers feature coming soon...</Typography>}
-              {tabIndex === 2 && <Typography color="white">Following feature coming soon...</Typography>}
+   {tabIndex === 1 && (
+  <Box>
+    {followers?.length > 0 ? (
+      followers.map((follower) => (
+        <Card
+          key={follower._id}
+          sx={{ mb: 2, p: 2, backgroundColor: '#2E3B4E', cursor: 'pointer' }}
+          onClick={() => navigate(`/user/${follower.username}`)}
+        >
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" gap={2}>
+              <Avatar src={follower.picture} alt={follower.username} />
+              <Box>
+                <Typography variant="subtitle1" sx={{ color: 'white' }}>
+                  {follower.name || 'Unknown Name'}
+                </Typography>
+                <Typography variant="body2" color="lightblue">
+                  @{follower.username}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Card>
+      ))
+    ) : (
+      <Typography>No followers yet</Typography>
+    )}
+  </Box>
+)}
+
+{tabIndex === 2 && (
+  <Box>
+    {following?.length > 0 ? (
+     following.map((followingUser) => (
+        <Card
+          key={followingUser._id}
+          sx={{ mb: 2, p: 2, backgroundColor: '#2E3B4E', cursor: 'pointer' }}
+          onClick={() => navigate(`/user/${followingUser.username}`)}
+        >
+          <Box display="flex" alignItems="center" gap={2}>
+            <Avatar src={followingUser.picture} alt={followingUser.username} />
+            <Box>
+              <Typography variant="subtitle1" sx={{ color: 'white' }}>
+                {followingUser.name || 'Unknown Name'}
+              </Typography>
+              <Typography variant="body2" color="lightblue">
+                @{followingUser.username}
+              </Typography>
+            </Box>
+          </Box>
+        </Card>
+      ))
+    ) : (
+      <Typography>Not following anyone yet</Typography>
+    )}
+  </Box>
+)}
             </Box>
           </Card>
         )}

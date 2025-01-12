@@ -136,5 +136,29 @@ router.get("/api/users/:id/following", async (req, res) => {
 });
 
 
+router.get('/api/followersandfollowing', async (req, res) => {
+  try {
+    const followersCount = await User.countDocuments({ followers: req.user.id });
+    const followingCount = await User.countDocuments({ following: req.user.id });
+    
+    const followers = await User.find({ followers: req.user.id })
+      .select('username picture name')
+      .lean();
+      
+    const following = await User.find({ following: req.user.id })
+      .select('username picture name')
+      .lean();
+
+    res.json({ 
+      followersCount, 
+      followingCount,
+      followers,
+      following
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching followers and following data" });
+  }
+});
+
 
 module.exports = router;
