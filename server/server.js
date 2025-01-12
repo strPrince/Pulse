@@ -7,11 +7,15 @@ const MongoStore = require('connect-mongo');
 const authRoutes = require('./routes/authRoutes'); // Import the auth routes
 const blogRoutes = require('./routes/blogRoutes'); // Import the blog routes
 const commentRoutes = require('./routes/commentRoutes'); // Import the comment routes
-const userRoutes = require('./routes/userRoutes'); // Import the user routes
+const userRoutes = require('./routes/userRoutes');
+// Import the user routes
 const cors = require('cors');
 const User = require('./models/User');
+require("dotenv").config();
 const Blog = require('./models/Blog');
 const app = express();
+
+
 
 // Middleware
 
@@ -48,6 +52,7 @@ app.use( blogRoutes);
 app.use( commentRoutes);
 app.use( userRoutes);
 app.use( authRoutes);
+
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/BLOGGER', {
@@ -157,7 +162,7 @@ app.post('/save-username', authenticate, async (req, res) => {
 
 app.post('/api/blog-posts', async (req, res) => {
   try {
-    const { title, content, tags, author } = req.body;
+    const { title, content, tags, author, image } = req.body;
     console.log('Received blog post data:', req.body);
 
     if (!title || !content || !author) {
@@ -168,6 +173,7 @@ app.post('/api/blog-posts', async (req, res) => {
       title,
       content,
       author,
+      image: image || null,
       tags: tags?.split(',').map((tag) => tag.trim()) || [],
     });
 
@@ -389,8 +395,20 @@ app.get('/api/blogs/:id/vote-status', async (req, res) => {
 // Handle voting
 app.post('/api/blogs/:id/vote', async (req, res) => {
   try {
+    // Check if blog exists
     const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
+
     const { action } = req.body; // 'up', 'down', or 'remove'
+    console.log('Vote action:', action);
+    
+    // Validate action
+    if (!['up', 'down', 'remove'].includes(action)) {
+      return res.status(400).json({ message: 'Invalid vote action' });
+    }
+
     const userId = req.user._id;
 
     // Remove existing votes first
@@ -408,22 +426,31 @@ app.post('/api/blogs/:id/vote', async (req, res) => {
 
     // Calculate new vote score
     blog.voteScore = blog.calculateVoteScore();
-    await blog.save();
+    
+    // Save changes to database
+    const updatedBlog = await blog.save();
+    if (!updatedBlog) {
+      throw new Error('Failed to save vote');
+    }
 
     // Determine user's current vote status
     let userVote = null;
-    if (blog.upvotes.includes(userId)) {
+    if (updatedBlog.upvotes.includes(userId)) {
       userVote = 'up';
-    } else if (blog.downvotes.includes(userId)) {
+    } else if (updatedBlog.downvotes.includes(userId)) {
       userVote = 'down';
     }
 
     res.json({
-      voteScore: blog.voteScore,
-      userVote
+      voteScore: updatedBlog.voteScore,
+      userVote,
+      upvotes: updatedBlog.upvotes.length,
+      downvotes: updatedBlog.downvotes.length
     });
+
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error processing vote:', err);
+    res.status(500).json({ message: 'Failed to process vote', error: err.message });
   }
 });
 
@@ -470,6 +497,15 @@ app.delete('/api/blogs/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+app.use(cors({
+  origin: ['http://localhost:5173'], // You can add more origins in the array
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+
 
 
 

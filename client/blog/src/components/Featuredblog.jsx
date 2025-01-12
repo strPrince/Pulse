@@ -20,12 +20,20 @@ export default function FeaturedBlogs() {
         setLoading(false);
       } catch (err) {
         console.error("Error fetching blogs:", err);
+        // if (err.response && err.response.status === 401) {
+        //   window.location.href = '/login';
+        //   return;
+        // }
         setLoading(false);
       }
     };
 
     fetchBlogs();
   }, []);
+
+  const handleReadMore = (blogId) => {
+    window.location.href = `/login`;
+  };
 
   useEffect(() => {
     // Only animate if blogs are loaded and we have references
@@ -91,6 +99,7 @@ export default function FeaturedBlogs() {
                 {blog.content.slice(0, 150)}...
               </p>
               <a
+              onClick={() => handleReadMore()}
                 href={`/blog/${blog._id}`}
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
               >

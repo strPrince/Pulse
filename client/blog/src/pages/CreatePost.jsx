@@ -1,481 +1,218 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
   Paper,
-  Avatar,
   Typography,
-  Card,
-  CardContent,
   TextField,
   Button,
   Snackbar,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip
 } from '@mui/material';
-import FormatBoldIcon from '@mui/icons-material/FormatBold';
-import FormatItalicIcon from '@mui/icons-material/FormatItalic';
-import LinkIcon from '@mui/icons-material/Link';
-import PreviewIcon from '@mui/icons-material/Preview';
-import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 
 const BlogPostPage = () => {
-  // User state
   const [user, setUser] = useState(null);
-  
-  // Form states
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null); // Image file
+  const [imageUrl, setImageUrl] = useState(''); // URL of uploaded image
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Rich text editor states
-  const [selection, setSelection] = useState({ start: 0, end: 0 });
-  const [showLinkDialog, setShowLinkDialog] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
-  
-  // Snackbar states
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-  // Rich text formatting handlers
-  const handleFormat = (format) => {
-    const textArea = document.querySelector('textarea');
-    const start = textArea.selectionStart;
-    const end = textArea.selectionEnd;
-    const selectedText = content.substring(start, end);
-
-    let formattedText = '';
-    switch (format) {
-      case 'bold':
-        formattedText = `**${selectedText}**`;
-        break;
-      case 'italic':
-        formattedText = `*${selectedText}*`;
-        break;
-      default:
-        formattedText = selectedText;
-    }
-
-    const newContent = content.substring(0, start) + formattedText + content.substring(end);
-    setContent(newContent);
-    setSelection({ start, end });
-  };
+  // Fetch current user details (if required)
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/current_user', { withCredentials: true });
-        if (response.data) {
-          setUser(response.data);
-        }
+        setUser(response.data);
       } catch (err) {
         console.error('Error fetching user:', err);
-        setSnackbarMessage('Failed to load user data');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
       }
     };
 
     fetchUser();
   }, []);
 
-  // const handlePost = async () => {
-  //   try {
-  //     if (!title.trim() || !content.trim()) {
-  //       setSnackbarMessage('Both title and content are required!');
-  //       setSnackbarSeverity('warning');
-  //       setSnackbarOpen(true);
-  //       return;
-  //     }
-
-  //     setIsSubmitting(true);
-  
-  //     const blogPost = {
-  //       title: title.trim(),
-  //       content: content.trim(),
-  //       tags: catagory.trim(),
-  //       author: user?.username || 'Anonymous',
-  //     };
-  
-  //     const response = await axios.post(
-  //       'http://localhost:3000/api/blog-posts',
-  //       blogPost,
-  //       {
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //       }
-  //     );
-  
-  //     setSnackbarMessage('Post saved successfully!');
-  //     setSnackbarSeverity('success');
-  //     setSnackbarOpen(true);
-  //     setTitle('');
-  //     setContent('');
-  //     setCategory('');
-  //   } catch (error) {
-  //     console.error('Error creating blog post:', error);
-  //     setSnackbarMessage('Failed to create blog post');
-  //     setSnackbarSeverity('error');
-  //     setSnackbarOpen(true);
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-  const handleLinkClick = () => {
-    const textArea = document.querySelector('textarea');
-    setSelection({
-      start: textArea.selectionStart,
-      end: textArea.selectionEnd
-    });
-    setShowLinkDialog(true);
-  };
-
-  const handleAddLink = () => {
-    const selectedText = content.substring(selection.start, selection.end);
-    const linkMD = `[${selectedText}](${linkUrl})`;
-    const newContent = 
-      content.substring(0, selection.start) + 
-      linkMD + 
-      content.substring(selection.end);
-    
-    setContent(newContent);
-    setShowLinkDialog(false);
-    setLinkUrl('');
-  };
-
-  // Post submission handler
-  const handlePost = async () => {
-    if (!title.trim() || !content.trim()) {
-      setSnackbarMessage('Please fill in all required fields');
+  // Handle Image Upload to Cloudinary
+  const handleImageUpload = async () => {
+    if (!selectedFile) {
+      setSnackbarMessage('Please select an image to upload.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true); // Disable button while uploading
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("upload_preset", "working"); // Your Cloudinary upload preset
+    formData.append("cloud_name", "diz6xc7or"); // Your Cloudinary cloud name
 
     try {
-      const response = await axios.post('http://localhost:3000/api/blog-posts', {
-        title: title.trim(),
-        content: content.trim(),
-        category: category.split(',').map(cat => cat.trim()).filter(cat => cat),
-        author: user?.username || 'Anonymous'
-      }, {
-        withCredentials: true
+      const response = await fetch("https://api.cloudinary.com/v1_1/diz6xc7or/image/upload", {
+        method: "POST",
+        body: formData,
       });
 
+      if (!response.ok) {
+        throw new Error("Error uploading image");
+      }
+
+      const data = await response.json();
+      setImageUrl(data.secure_url); // The uploaded image's URL returned by Cloudinary
+      setSnackbarMessage('Image uploaded successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setSnackbarMessage('Failed to upload image.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsSubmitting(false); // Enable button after upload
+    }
+  };
+
+  // Handle Post Submission
+  const handlePost = async () => {
+    if (!title.trim() || !content.trim()) {
+      setSnackbarMessage('Please fill in all required fields.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    // Disable the post button while submitting
+    setIsSubmitting(true);
+console.log(imageUrl);
+    try {
+      const blogPost = {
+        title: title.trim(),
+        content: content.trim(),
+        category: category.split(',').map((cat) => cat.trim()),
+        image: imageUrl, // Include the image URL uploaded to Cloudinary
+        
+        author: user?.username || 'Anonymous', // Assuming 'user' object exists
+      };
+
+      // Send the blog post data to the backend API
+      const response = await axios.post('http://localhost:3000/api/blog-posts', blogPost, {
+        withCredentials: true, // For session-based auth, if necessary
+      });
+
+      // Show success message
       setSnackbarMessage('Post published successfully!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
 
-      // Clear form
+      // Clear form after successful post
       setTitle('');
       setContent('');
       setCategory('');
-      setShowPreview(false);
+      setImageUrl('');
+      setSelectedFile(null);
     } catch (error) {
-      setSnackbarMessage(error.response?.data?.message || 'Failed to publish post');
+      console.error('Error creating post:', error);
+      setSnackbarMessage('Failed to publish post.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Re-enable the button
     }
-  };
+};
+
 
   return (
-    <div className="mainc" style={{ backgroundColor: '#121212' }}>
-      <Container maxWidth="lg" sx={{ bgcolor: '#121212' }}>
-        <Box
-          sx={{
-            minHeight: '100vh',
-            py: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-            bgcolor: '#121212',
-            color: '#fff'
-          }}
-        >
-          <Paper 
-            elevation={0}
-            sx={{
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              bgcolor: '#1E1E1E',
-              color: '#fff'
-            }}
-          >
-            <Avatar
-              alt={user?.username || 'User'}
-              src={user?.picture || 'https://via.placeholder.com/100'}
-              sx={{ width: 64, height: 64 }}
-            />
-            <Box>
-              <Typography variant="h5" fontWeight="medium" color="#fff">
-                {user?.username || 'Guest User'}
-              </Typography>
-              <Typography variant="body2" color="#9BA4B5">
-                Share your thoughts with the community
-              </Typography>
-            </Box>
-          </Paper>
-
-          <Card
-            elevation={2}
-            sx={{
-              borderRadius: 2,
-              bgcolor: '#1E1E1E',
-              color: '#fff'
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography variant="h6" gutterBottom fontWeight="medium" color="#fff">
-                Create a New Blog Post
-              </Typography>
-              
-              <Box component="form" noValidate sx={{ mt: 3 }}>
-                <TextField
-                  label="Title"
-                  variant="outlined"
-                  fullWidth
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  sx={{ 
-                    mb: 3,
-                    '& .MuiOutlinedInput-root': {
-                      color: '#fff',
-                      '& fieldset': {
-                        borderColor: '#394867',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#537FE7',
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: '#9BA4B5'
-                    }
-                  }}
-                  required
-                  error={title.trim() === ''}
-                  helperText={title.trim() === '' ? 'Title is required' : ''}
-                />
-                
-                <Box sx={{ width: '100%', mb: 3 }}>
-                  <Box sx={{ mb: 1, backgroundColor: '#1C232D', p: 1, borderRadius: '4px' }}>
-                    <ToggleButtonGroup
-                      size="small"
-                      sx={{
-                        '& .MuiToggleButton-root': {
-                          color: '#9BA4B5',
-                          borderColor: '#394867',
-                          '&:hover': {
-                            backgroundColor: 'rgba(83, 127, 231, 0.1)',
-                          },
-                          '&.Mui-selected': {
-                            backgroundColor: 'rgba(83, 127, 231, 0.2)',
-                            color: '#537FE7',
-                          },
-                        },
-                      }}
-                    >
-                      <Tooltip title="Bold">
-                        <ToggleButton value="bold" onClick={() => handleFormat('bold')}>
-                          <FormatBoldIcon />
-                        </ToggleButton>
-                      </Tooltip>
-                      <Tooltip title="Italic">
-                        <ToggleButton value="italic" onClick={() => handleFormat('italic')}>
-                          <FormatItalicIcon />
-                        </ToggleButton>
-                      </Tooltip>
-                      <Tooltip title="Add Link">
-                        <ToggleButton value="link" onClick={handleLinkClick}>
-                          <LinkIcon />
-                        </ToggleButton>
-                      </Tooltip>
-                      <Tooltip title="Preview">
-                        <ToggleButton 
-                          value="preview"
-                          selected={showPreview}
-                          onClick={() => setShowPreview(!showPreview)}
-                        >
-                          <PreviewIcon />
-                        </ToggleButton>
-                      </Tooltip>
-                    </ToggleButtonGroup>
-                  </Box>
-
-                  {showPreview ? (
-                    <Box 
-                      sx={{ 
-                        p: 2, 
-                        minHeight: '300px',
-                        backgroundColor: '#1C232D',
-                        color: '#fff',
-                        borderRadius: '4px',
-                        border: '1px solid #394867',
-                        '& a': {
-                          color: '#537FE7',
-                          textDecoration: 'none',
-                          '&:hover': {
-                            textDecoration: 'underline',
-                          },
-                        },
-                      }}
-                    >
-                      <ReactMarkdown>{content}</ReactMarkdown>
-                    </Box>
-                  ) : (
-                    <TextField
-                      label="Content"
-                      variant="outlined"
-                      fullWidth
-                      multiline
-                      rows={12}
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      sx={{ 
-                        '& .MuiOutlinedInput-root': {
-                          color: '#fff',
-                          '& fieldset': {
-                            borderColor: '#394867',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#537FE7',
-                          },
-                        },
-                        '& .MuiInputLabel-root': {
-                          color: '#9BA4B5'
-                        }
-                      }}
-                      required
-                      error={content.trim() === ''}
-                      helperText={content.trim() === '' ? 'Content is required' : ''}
-                    />
-                  )}
-                </Box>
-                
-                <TextField
-                  label="Category"
-                  variant="outlined"
-                  fullWidth
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  sx={{ 
-                    mb: 4,
-                    '& .MuiOutlinedInput-root': {
-                      color: '#fff',
-                      '& fieldset': {
-                        borderColor: '#394867',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#537FE7',
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: '#9BA4B5'
-                    }
-                  }}
-                  placeholder="Enter category tags separated by commas"
-                />
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handlePost}
-                  fullWidth
-                  disabled={isSubmitting || !title.trim() || !content.trim()}
-                  sx={{
-                    py: 1.5,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    fontWeight: 500,
-                    bgcolor: '#537FE7',
-                    '&:hover': {
-                      bgcolor: '#3457D5'
-                    }
-                  }}
-                >
-                  {isSubmitting ? 'Publishing...' : 'Publish Post'}
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Dialog 
-          open={showLinkDialog} 
-          onClose={() => setShowLinkDialog(false)}
-          PaperProps={{
-            sx: {
-              backgroundColor: '#1C232D',
-              color: '#fff',
-            }
-          }}
-        >
-          <DialogTitle>Add Link</DialogTitle>
-          <DialogContent>
+    <Container maxWidth="lg">
+      <Box sx={{ py: 4 }}>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h5">Create a Blog Post</Typography>
+          <Box sx={{ mt: 2 }}>
+            {/* Title Input */}
             <TextField
-              autoFocus
-              margin="dense"
-              label="URL"
-              type="url"
+              label="Title"
               fullWidth
-              variant="outlined"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              sx={{ 
-                '& .MuiOutlinedInput-root': {
-                  color: '#fff',
-                  '& fieldset': {
-                    borderColor: '#394867',
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: '#9BA4B5'
-                }
-              }}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
             />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowLinkDialog(false)} sx={{ color: '#9BA4B5' }}>
-              Cancel
+          </Box>
+          <Box sx={{ mt: 2 }}>
+            {/* Content Input */}
+            <TextField
+              label="Content"
+              fullWidth
+              multiline
+              rows={6}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+            />
+          </Box>
+          <Box sx={{ mt: 2 }}>
+            {/* Category Input */}
+            <TextField
+              label="Category"
+              fullWidth
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+          </Box>
+          <Box sx={{ mt: 2 }}>
+            {/* Image Upload */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+            />
+            <Button
+              variant="outlined"
+              onClick={handleImageUpload}
+              sx={{ ml: 2 }}
+              disabled={isSubmitting}
+            >
+              Upload Image
             </Button>
-            <Button onClick={handleAddLink} sx={{ color: '#537FE7' }}>
-              Add
+          </Box>
+          {imageUrl && (
+            <Box sx={{ mt: 2 }}>
+              <img src={imageUrl} alt="Uploaded" style={{ maxWidth: '100%' }} />
+            </Box>
+          )}
+          <Box sx={{ mt: 3 }}>
+            {/* Submit Post */}
+            <Button
+              variant="contained"
+              onClick={handlePost}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Publishing...' : 'Publish Post'}
             </Button>
-          </DialogActions>
-        </Dialog>
+          </Box>
+        </Paper>
+      </Box>
 
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={5000}
+      {/* Snackbar for status messages */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={5000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
           onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
         >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Container>
-    </div>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 };
 

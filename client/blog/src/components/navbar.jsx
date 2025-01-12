@@ -15,13 +15,13 @@ import {
   Menu,
   MenuItem,
   Avatar,
-  
 } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
-import AndroidIcon from "@mui/icons-material/Android"; // Icon for the logo
+import AndroidIcon from "@mui/icons-material/Android";
 import axios from "axios";
+import { DownOutlined, SettingOutlined } from '@ant-design/icons';
+import { Dropdown, Space } from 'antd';
 
-// Main App Component
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
@@ -30,7 +30,27 @@ const App = () => {
 
   const navigate = useNavigate();
 
-  // Fetch user details on mount
+  const items = [
+    
+    {
+      key: '1',
+      label: 'Profile',
+      extra: 'User Profile',
+      onClick: () => {
+        navigate("/profile");
+      }
+    },
+    {
+      key: '2',
+      label: 'Logout',
+      extra: 'Logout',
+      onClick: () => {
+        handleLogout();
+      }
+    },
+   
+  ];
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -53,20 +73,12 @@ const App = () => {
     fetchUser();
   }, []);
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:3000/logout"); // Adjust endpoint as per your backend
+      await axios.get("http://localhost:3000/logout");
       setIsLoggedIn(false);
       setUser(null);
-      navigate("/"); // Redirect to the homepage after logout
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -88,8 +100,6 @@ const App = () => {
     <>
       <AppBar position="static" sx={{ backgroundColor: " #090d1a" }}>
         <Toolbar>
-          {/* Logo */}
-       
           <Typography
             variant="h6"
             className="heading"
@@ -97,38 +107,30 @@ const App = () => {
               flexGrow: 1,
               fontWeight: "bold",
               letterSpacing: 1,
-             
             }}
           >
             Pulse
           </Typography>
 
-         
-
-          {/* Conditional Login/Signup or User Menu */}
           {!isLoggedIn ? (
             <>
-             {/* Navigation Links */}
-          
-         
-          <Button
-          className="active"
-            color="inherit"
-            component={Link}
-            to="/about"
-            sx={{ fontWeight: "bold", color: "#d5eafc" }}
-          >
-            ABOUT US
-          </Button>
-          <Button
-          
-            color="inherit"
-            component={Link}
-            to="/contact"
-            sx={{ fontWeight: "bold", color: "#d5eafc" }}
-          >
-            CONTACT US
-          </Button>
+              <Button
+                className="active"
+                color="inherit"
+                component={Link}
+                to="/about"
+                sx={{ fontWeight: "bold", color: "#d5eafc" }}
+              >
+                ABOUT US
+              </Button>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/contact"
+                sx={{ fontWeight: "bold", color: "#d5eafc" }}
+              >
+                CONTACT US
+              </Button>
               <Button
                 color="inherit"
                 component={Link}
@@ -148,61 +150,45 @@ const App = () => {
             </>
           ) : (
             <>
-             <IconButton onClick={() => navigate("/create-post")} aria-label="create post" color="primary">
-          <AddIcon />
-        </IconButton>
- {/* Navigation Links */}
-          
-         
- <Button
-            color="inherit"
-            component={Link}
-            to="/about"
-            sx={{ fontWeight: "bold", color: "#d5eafc" }}
-          >
-            ABOUT US
-          </Button>
-          <Button
-            color="inherit"
-            component={Link}
-            to="/contact"
-            sx={{ fontWeight: "bold", color: "#d5eafc" }}
-          >
-            CONTACT US
-          </Button>
-
-              <IconButton color="inherit" onClick={handleMenuOpen}>
-                <Avatar
-                  alt={user?.displayName || "User"}
-                  src={user?.picture || ""}
-                />
+              <IconButton onClick={() => navigate("/create-post")} aria-label="create post" color="primary">
+                <AddIcon />
               </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
+              <Button
+                color="inherit"
+                component={Link}
+                to="/about"
+                sx={{ fontWeight: "bold", color: "#d5eafc" }}
               >
-                <MenuItem
-                  onClick={() => {
-                    navigate("/profile");
-                    handleMenuClose();
-                  }}
-                >
-                  Profile
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
-              </Menu>
+                ABOUT US
+              </Button>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/contact"
+                sx={{ fontWeight: "bold", color: "#d5eafc" }}
+              >
+                CONTACT US
+              </Button>
+
+              <Dropdown menu={{ items }}>
+                <a onClick={(e) => e.preventDefault()}>
+                  <Space>
+                    <Avatar
+                      alt={user?.displayName || "User"}
+                      src={user?.picture || ""}
+                    />
+                    <DownOutlined />
+                  </Space>
+                </a>
+              </Dropdown>
             </>
           )}
         </Toolbar>
       </AppBar>
-
-    
     </>
   );
 };
 
-// Home Page
 const Home = () => (
   <Typography
     variant="h4"
@@ -213,7 +199,6 @@ const Home = () => (
   </Typography>
 );
 
-// Blogs Page
 const Blogs = () => (
   <Typography
     variant="h4"
@@ -224,7 +209,6 @@ const Blogs = () => (
   </Typography>
 );
 
-// About Us Page
 const About = () => (
   <Typography
     variant="h4"
@@ -235,7 +219,6 @@ const About = () => (
   </Typography>
 );
 
-// Contact Us Page
 const Contact = () => (
   <Typography
     variant="h4"
@@ -246,7 +229,6 @@ const Contact = () => (
   </Typography>
 );
 
-// Login Page
 const Login = () => (
   <Typography
     variant="h4"
@@ -257,7 +239,6 @@ const Login = () => (
   </Typography>
 );
 
-// Signup Page
 const Signup = () => (
   <Typography
     variant="h4"

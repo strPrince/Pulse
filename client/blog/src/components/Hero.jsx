@@ -54,6 +54,7 @@ export default function HeroSection() {
           <div>
             <button 
               ref={buttonRef}
+              onClick={() => window.location.href = '/login'}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
               Start Writing
@@ -62,46 +63,65 @@ export default function HeroSection() {
         </div>
         
         <div 
-          ref={illustrationRef}
-          className="mt-12 lg:mt-0 lg:w-1/2 max-w-md"
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 500 400" 
-            className="w-full h-auto"
-          >
-            {/* Blog/Writing Illustration */}
-            <rect x="50" y="50" width="400" height="300" rx="10" fill="#1E293B" />
-            
-            {/* Writing Desk Elements */}
-            <rect x="100" y="120" width="300" height="180" fill="#2C3E50" />
-            
-            {/* Paper/Document */}
-            <rect x="130" y="150" width="240" height="120" fill="#FFFFFF" />
-            
-            {/* Writing Implements */}
-            <path 
-              d="M380 220 L420 180 L440 200 L400 240 Z" 
-              fill="#E74C3C" 
-            />
-            
-            {/* Thought Bubbles */}
-            <ellipse 
-              cx="250" 
-              cy="80" 
-              rx="60" 
-              ry="40" 
-              fill="rgba(52,211,153,0.3)" 
-            />
-            <ellipse 
-              cx="300" 
-              cy="40" 
-              rx="40" 
-              ry="25" 
-              fill="rgba(96,165,250,0.3)" 
-            />
-          </svg>
-        </div>
+  ref={illustrationRef}
+  className="mt-12 lg:mt-0 lg:w-1/2 max-w-md"
+>
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 500 400" 
+    className="w-full h-auto"
+  >
+    {/* Main Blog Post Container */}
+    <rect x="100" y="50" width="300" height="200" rx="8" fill="#1E293B" />
+    
+    {/* Blog Post Header */}
+    <rect x="120" y="70" width="260" height="30" rx="4" fill="#2C3E50" />
+    
+    {/* Blog Content Lines */}
+    <rect x="120" y="120" width="260" height="10" rx="2" fill="#4A5568" />
+    <rect x="120" y="140" width="200" height="10" rx="2" fill="#4A5568" />
+    <rect x="120" y="160" width="230" height="10" rx="2" fill="#4A5568" />
+    
+    {/* Share Icons */}
+    <circle cx="150" cy="300" r="25" fill="#1DA1F2" /> {/* Twitter */}
+    <circle cx="250" cy="300" r="25" fill="#4267B2" /> {/* Facebook */}
+    <circle cx="350" cy="300" r="25" fill="#E4405F" /> {/* Instagram */}
+    
+    {/* Connection Lines */}
+    <path 
+      d="M150 270 L150 220 L350 220 L350 270" 
+      stroke="#4A5568" 
+      strokeWidth="3" 
+      fill="none"
+    />
+    
+    {/* Share Arrows */}
+    <path 
+      d="M145 295 L155 285 L165 295" 
+      stroke="white" 
+      strokeWidth="2" 
+      fill="none"
+    />
+    <path 
+      d="M245 295 L255 285 L265 295" 
+      stroke="white" 
+      strokeWidth="2" 
+      fill="none"
+    />
+    <path 
+      d="M345 295 L355 285 L365 295" 
+      stroke="white" 
+      strokeWidth="2" 
+      fill="none"
+    />
+    
+    {/* Floating Share Indicators */}
+    <circle cx="420" cy="150" r="15" fill="rgba(52,211,153,0.3)" />
+    <circle cx="440" cy="180" r="10" fill="rgba(96,165,250,0.3)" />
+    <circle cx="400" cy="190" r="12" fill="rgba(239,68,68,0.3)" />
+  </svg>
+</div>
+
       </div>
     </section>
   );

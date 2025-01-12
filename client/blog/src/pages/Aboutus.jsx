@@ -26,10 +26,16 @@ const AboutUsPage = () => {
     {
       question: "Question 4?",
       answer: "Answer to question 4 goes here."
+    },
+    {
+      question: "Question 5?",
+      answer: "Answer to question 5 goes here."
+    },
+    {
+      question: "Question 6?",
+      answer: "Answer to question 6 goes here."
     }
   ];
-
-  
 
   return (
     <>

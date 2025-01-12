@@ -14,10 +14,7 @@ const blogSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    image: {
-        type: String,  // URL of the image
-        default: ''
-    },
+    image: { type: String }, 
     tags: [{
         type: String,
         trim: true

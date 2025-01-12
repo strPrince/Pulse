@@ -1,17 +1,20 @@
 import { FacebookShareButton, TwitterShareButton, LinkedinShareButton } from 'react-share';
+import { FaFacebook, FaTwitter, FaLinkedin } from 'react-icons/fa';
 
 const ShareButtons = ({ shareableLink }) => {
   return (
     <div>
       <FacebookShareButton url={shareableLink}>
-        Share on Facebook
+        <FaFacebook size={20} />
       </FacebookShareButton>
       <TwitterShareButton url={shareableLink}>
-        Share on Twitter
+        <FaTwitter size={20} />
       </TwitterShareButton>
       <LinkedinShareButton url={shareableLink}>
-        Share on LinkedIn
+        <FaLinkedin size={20} />
       </LinkedinShareButton>
     </div>
   );
 };
+
+export default ShareButtons;

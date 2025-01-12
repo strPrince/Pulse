@@ -1,9 +1,15 @@
 const express = require('express');
 const Blog = require('../models/Blog');
 const User = require('../models/User');
+
 const router = express.Router();
 
 router.get('/api/blogs', async (req, res) => {
+    // Check if user is authenticated
+    if (!req.user) {
+   return  res.status(401).json({ error: 'Unauthorized' });
+    }
+    
     try {
       const blogs = await Blog.find();
       res.json(blogs);
@@ -13,6 +19,10 @@ router.get('/api/blogs', async (req, res) => {
   });
 
 router.get('/api/blogs/:id', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+   }
+   
   try {
     const blog = await Blog.findById(req.params.id);
     blog ? res.json(blog) : res.status(404).json({ error: 'Blog not found' });

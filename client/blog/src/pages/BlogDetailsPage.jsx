@@ -1,7 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { FaArrowUp, FaArrowDown, FaBookmark, FaShare, FaTwitter, FaFacebook, FaLinkedin,FaEdit, FaTrash } from "react-icons/fa";
+import {
+  FaArrowUp,
+  FaArrowDown,
+  FaBookmark,
+  FaShare,
+  FaTwitter,
+  FaFacebook,
+  FaLinkedin,
+  FaEdit,
+  FaTrash,
+} from "react-icons/fa";
 
 const API_BASE_URL = "http://localhost:3000/api";
 
@@ -12,7 +22,7 @@ const BlogDetailsPage = () => {
   const [voteScore, setVoteScore] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,15 +33,19 @@ const BlogDetailsPage = () => {
       const [blogResponse, voteResponse] = await Promise.all([
         axios.get(`${API_BASE_URL}/blogs/${id}`),
         axios.get(`${API_BASE_URL}/blogs/${id}/vote-status`, {
-          withCredentials: true
-        })
+          withCredentials: true,
+        }),
       ]);
 
       setBlog(blogResponse.data);
       setVoteScore(blogResponse.data.voteScore || 0);
       setUserVote(voteResponse.data.voteStatus);
     } catch (err) {
-      setError("Error fetching blog data");
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
       console.error("Error fetching blog data:", err);
     } finally {
       setIsLoading(false);
@@ -55,14 +69,14 @@ const BlogDetailsPage = () => {
 
   const handleVote = async (direction) => {
     try {
-      const action = userVote === direction ? 'remove' : direction;
-      
+      const action = userVote === direction ? "remove" : direction;
+
       const response = await axios.post(
         `${API_BASE_URL}/blogs/${id}/vote`,
         { action },
         { withCredentials: true }
       );
-
+        console.log(response.data);
       setVoteScore(response.data.voteScore);
       setUserVote(response.data.userVote);
     } catch (err) {
@@ -74,101 +88,76 @@ const BlogDetailsPage = () => {
       }
     }
   };
+
   const fetchCurrentUser = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/current_user", {
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        "http://localhost:3000/api/current_user",
+        {
+          withCredentials: true,
+        }
+      );
       setCurrentUser(response.data);
     } catch (error) {
       console.error("Error fetching current user:", error);
+      setCurrentUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    
     fetchCurrentUser();
   }, []);
-  // {console.log("currentUser ",currentUser)}
-
-
 
   const shareableLink = `http://localhost:5173/blog/${blog?._id}`;
-  
+
   const handleShare = async (platform) => {
     const encodedLink = encodeURIComponent(shareableLink);
-    const encodedTitle = encodeURIComponent(blog?.title || '');
-    
+    const encodedTitle = encodeURIComponent(blog?.title || "");
+
     let shareUrl;
-    switch(platform) {
-      case 'twitter':
+    switch (platform) {
+      case "twitter":
         shareUrl = `https://twitter.com/intent/tweet?url=${encodedLink}&text=${encodedTitle}`;
         break;
-      case 'facebook':
+      case "facebook":
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`;
         break;
-      case 'linkedin':
+      case "linkedin":
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedLink}`;
         break;
-      case 'copy':
+      case "copy":
         try {
           await navigator.clipboard.writeText(shareableLink);
-          alert('Link copied to clipboard!');
+          alert("Link copied to clipboard!");
           return;
         } catch (err) {
-          console.error('Failed to copy link:', err);
-          alert('Failed to copy link');
+          console.error("Failed to copy link:", err);
+          alert("Failed to copy link");
           return;
         }
       default:
         return;
     }
-    
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+
+    window.open(shareUrl, "_blank", "width=600,height=400");
   };
+
   const handleDeleteClick = async () => {
     if (window.confirm("Are you sure you want to delete this blog?")) {
       try {
-        await axios.delete(`http://localhost:3000/api/blogs/${blog._id}`, {
+        await axios.delete(`${API_BASE_URL}/blogs/${blog._id}`, {
           withCredentials: true,
         });
-        onDelete(blog._id); // Call the onDelete function passed down to remove blog from UI
+        // Redirect to the home page after deletion
+        window.location.href = "/";
       } catch (error) {
         console.error("Error deleting blog:", error);
       }
     }
   };
-  const ShareMenu = () => (
-    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
-      <div className="py-1" role="menu">
-        <button
-          onClick={() => handleShare('twitter')}
-          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full"
-        >
-          <FaTwitter className="mr-3" /> Twitter
-        </button>
-        <button
-          onClick={() => handleShare('facebook')}
-          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full"
-        >
-          <FaFacebook className="mr-3" /> Facebook
-        </button>
-        <button
-          onClick={() => handleShare('linkedin')}
-          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full"
-        >
-          <FaLinkedin className="mr-3" /> LinkedIn
-        </button>
-        <button
-          onClick={() => handleShare('copy')}
-          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 w-full"
-        >
-          <FaShare className="mr-3" /> Copy Link
-        </button>
-      </div>
-    </div>
-  );
-  
+
   const handleCommentChange = (event) => {
     setNewComment(event.target.value);
   };
@@ -178,39 +167,36 @@ const BlogDetailsPage = () => {
     if (!newComment.trim()) return;
 
     try {
-      // Add loading state while submitting
-      setIsLoading(true);
-      
       const response = await axios.post(
         `${API_BASE_URL}/comments/${id}`,
-        { 
+        {
           content: newComment,
-          blogId: id // Ensure blogId is included
+          blogId: id,
         },
-        { 
+        {
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
       if (response.data) {
         setComments((prevComments) => [response.data, ...prevComments]);
-        setNewComment('');
-      } else {
-        throw new Error('No data received from server');
+        setNewComment("");
       }
-
     } catch (err) {
-      console.error('Error posting comment:', err);
+      console.error("Error posting comment:", err);
       alert(err.response?.data?.message || "Error posting comment. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
   if (isLoading) return <p className="text-white text-center">Loading...</p>;
+
+  if (!currentUser) {
+    return <Navigate to="/login" />;
+  }
+
   if (error) return <p className="text-red-500 text-center">{error}</p>;
   if (!blog) return <p className="text-white text-center">Blog not found</p>;
 
@@ -254,21 +240,22 @@ const BlogDetailsPage = () => {
 
                   
                   {blog.author === currentUser.username && (
-    <>
-      <button
-        className="hover:text-blue-400 transition-colors"
-        onClick={() => Navigate(`/edit/${blog._id}`)}
-      >
-        <FaEdit className="text-lg" />
-      </button>
-      <button
-        className="hover:text-red-400 transition-colors"
-        onClick={() => handleDeleteClick(blog._id)}
-      >
-        <FaTrash className="text-lg" />
-      </button>
-    </>
-  )}                  {showShareMenu && <ShareMenu />}
+                    <>
+                      <button
+                        className="hover:text-blue-400 transition-colors"
+                        onClick={() => navigate(`/edit/${blog._id}`)}
+                      >
+                        <FaEdit className="text-lg" />
+                      </button>
+                      <button
+                        className="hover:text-red-400 transition-colors"
+                        onClick={handleDeleteClick}
+                      >
+                        <FaTrash className="text-lg" />
+                      </button>
+                    </>
+                  )}
+                  {showShareMenu && <ShareMenu />}
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-white mb-3">{blog.title}</h1>
@@ -282,25 +269,25 @@ const BlogDetailsPage = () => {
             </div>
 
             <div className="prose prose-invert max-w-none">
-  <div className="mb-8">
-    {blog.image && (
-      <img 
-        src={blog.image} 
-        alt="Blog cover" 
-        className="w-full rounded-xl mb-6 object-cover shadow-lg"
-        loading="lazy"
-      />
-    )}
-    <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-lg"
-      dangerouslySetInnerHTML={{
-        __html: blog.content
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:underline">$1</a>')
-      }}
-    />
-  </div>
-</div>
+              <div className="mb-8">
+                {blog.image && (
+                  <img 
+                    src={blog.image} 
+                    alt="Blog cover" 
+                    className="w-full rounded-xl mb-6 object-cover shadow-lg"
+                    loading="lazy"
+                  />
+                )}
+                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-lg"
+                  dangerouslySetInnerHTML={{
+                    __html: blog.content
+                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:underline">$1</a>')
+                  }}
+                />
+              </div>
+            </div>
             <form onSubmit={handleSubmitComment} className="mt-8">
               <textarea
                 value={newComment}
@@ -341,7 +328,6 @@ const BlogDetailsPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )};
 
 export default BlogDetailsPage;
