@@ -196,132 +196,210 @@ console.log(isFollowing)
     >
       <Container maxWidth="lg">
         <Grid container spacing={4} justifyContent="center">
-          <Grid item xs={12} md={showPosts ? 4 : 8} sx={{ display: "flex", justifyContent: "center" }}>
-            <Paper
-              elevation={6}
-              sx={{
-                width: showPosts ? "100%" : "70%",
-                borderRadius: 4,
-                backgroundColor: "#1a1a2e",
-                color: "#e6e6ff",
-                overflow: "hidden",
-                boxShadow: "0 12px 24px rgba(0, 0, 0, 0.5)",
-                transition: "width 0.3s ease-in-out",
-              }}
-            >
-              <Button
-                variant="contained"
-                startIcon={<Share />}
-                onClick={handleShareProfile}
-                sx={{
-                  position: "absolute",
-                  top: 20,
-                  right: 20,
-                  zIndex: 1,
-                  backgroundColor: "rgba(74,144,226,0.8)",
-                  "&:hover": {
-                    backgroundColor: "#4a90e2",
-                  },
-                }}
-              >
-                Share
-              </Button>
+        
+                 <Grid item xs={12} md={showPosts ? 4 : 8} sx={{ display: "flex", justifyContent: "center" }}>
+  <Paper
+    elevation={8}
+    sx={{
+      width: showPosts ? "100%" : "80%", 
+      borderRadius: 8,
+      background: "linear-gradient(145deg, #1a1a2e, #252540)",
+      color: "#e6e6ff",
+      overflow: "hidden",
+      boxShadow: "0 16px 32px rgba(0, 0, 0, 0.6)",
+      transition: "all 0.4s ease",
+      '&:hover': {
+        transform: 'translateY(-5px)',
+        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.8)"
+      }
+    }}
+  >
+    <Button
+      variant="contained"
+      startIcon={<Share />}
+      onClick={handleShareProfile}
+      sx={{
+        position: "absolute",
+        top: 24,
+        right: 24,
+        zIndex: 1,
+        borderRadius: '20px',
+        padding: '8px 20px',
+        background: 'linear-gradient(45deg, #4a90e2, #357abd)',
+        boxShadow: '0 4px 15px rgba(74,144,226,0.4)',
+        "&:hover": {
+          background: 'linear-gradient(45deg, #357abd, #2d6aa6)',
+          transform: 'translateY(-2px)',
+          boxShadow: '0 6px 20px rgba(74,144,226,0.6)'
+        },
+      }}
+    >
+      Share
+    </Button>
 
-              <Box sx={{ px: 4, pb: 1, position: "relative", padding: "20px" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Avatar
-                    src={user.picture || ""}
-                    sx={{
-                      width: 100,
-                      height: 100,
-                      border: "2px solid #e6e6ff",
-                      position: "relative",
-                    }}
-                  >
-                    {!user.picture && user.name[0].toUpperCase()}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h4" fontWeight="bold" color="#ff9f43">
-                      {user.name}
-                    </Typography>
-                    <Typography variant="h6" color="#4a90e2">
-                      @{username}
-                    </Typography>
-                  </Box>
-                </Box>
+    <Box sx={{ p: 4, position: "relative" }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+        <Avatar
+          src={user.picture || ""}
+          sx={{
+            width: 120,
+            height: 120,
+            border: "3px solid #4a90e2",
+            boxShadow: '0 4px 20px rgba(74,144,226,0.3)',
+            transition: 'transform 0.3s ease',
+            '&:hover': {
+              transform: 'scale(1.05)'
+            }
+          }}
+        >
+          {!user.picture && user.name[0].toUpperCase()}
+        </Avatar>
+        <Box>
+          <Typography 
+            variant="h3" 
+            fontWeight="800"
+            sx={{
+              background: 'linear-gradient(45deg, #ff9f43, #ff7f50)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            {user.name}
+          </Typography>
+          <Typography 
+            variant="h6" 
+            sx={{
+              color: '#4a90e2',
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >
+            @{username}
+          </Typography>
+        </Box>
+      </Box>
 
-                <Typography
-                  variant="body1"
-                  color="rgba(230,230,255,0.9)"
-                  sx={{ mt: 3, mb: 3 }}
-                >
-                  {user.bio || "No bio available"}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mt: 3,
-                    px: 2,
-                  }}
-                >
-                  <Box textAlign="center">
-                    <Typography variant="h6" fontWeight="bold" color="#ff9f43">
-                      {followersCount}
-                    </Typography>
-                    <Typography variant="body2" color="rgba(230,230,255,0.7)">
-                      Followers
-                    </Typography>
-                  </Box>
-                  <Box textAlign="center">
-                    <Typography variant="h6" fontWeight="bold" color="#ff9f43">
-                      {followingCount}
-                    </Typography>
-                    <Typography variant="body2" color="rgba(230,230,255,0.7)">
-                      Following
-                    </Typography>
-                  </Box>
-                </Box>
+      <Typography
+        variant="body1"
+        sx={{ 
+          mt: 4, 
+          mb: 4,
+          color: "rgba(230,230,255,0.9)",
+          lineHeight: 1.8,
+          fontSize: '1.1rem'
+        }}
+      >
+        {user.bio || "No bio available"}
+      </Typography>
 
-                <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
-                  
-                  <Button
-                    variant={isFollowing ? "outlined" : "contained"} 
-                    startIcon={isFollowing ? <Cancel /> : <PersonAdd />}
-                    onClick={handleFollow}
-                    sx={{
-                      backgroundColor: isFollowing ? "transparent" : "#4a90e2",
-                      borderColor: isFollowing ? "#ff6b6b" : "transparent", 
-                      color: isFollowing ? "#ff6b6b" : "#fff",
-                      "&:hover": {
-                        backgroundColor: isFollowing ? "rgba(255, 107, 107, 0.1)" : "#66a3ff",
-                        borderColor: isFollowing ? "#ff8585" : "transparent",
-                      },
-                    }}
-                  >
-                    {isFollowing ? "Following" : "Follow"}
-                  </Button>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-around",
+          mt: 4,
+          p: 3,
+          background: 'rgba(255,255,255,0.05)',
+          borderRadius: '15px',
+          backdropFilter: 'blur(10px)'
+        }}
+      >
+        <Box textAlign="center">
+          <Typography 
+            variant="h4" 
+            fontWeight="bold"
+            sx={{
+              color: '#ff9f43',
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >
+            {followersCount}
+          </Typography>
+          <Typography 
+            variant="body1" 
+            sx={{
+              color: "rgba(230,230,255,0.8)",
+              fontWeight: 500
+            }}
+          >
+            Followers
+          </Typography>
+        </Box>
+        <Box textAlign="center">
+          <Typography 
+            variant="h4" 
+            fontWeight="bold"
+            sx={{
+              color: '#ff9f43',
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >
+            {followingCount}
+          </Typography>
+          <Typography 
+            variant="body1"
+            sx={{
+              color: "rgba(230,230,255,0.8)",
+              fontWeight: 500
+            }}
+          >
+            Following
+          </Typography>
+        </Box>
+      </Box>
 
-                  <Button
-                    variant="outlined"
-                    startIcon={<Article />}
-                    onClick={fetchPosts}
-                    sx={{
-                      borderColor: "#4a90e2",
-                      color: "#4a90e2",
-                      "&:hover": {
-                        borderColor: "#66a3ff",
-                        backgroundColor: "rgba(74,144,226,0.1)",
-                      },
-                    }}
-                  >
-                    View Posts
-                  </Button>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
+      <Box sx={{ display: "flex", gap: 3, mt: 4 }}>
+        <Button
+          variant={isFollowing ? "outlined" : "contained"}
+          startIcon={isFollowing ? <Cancel /> : <PersonAdd />}
+          onClick={handleFollow}
+          sx={{
+            flex: 1,
+            padding: '12px',
+            borderRadius: '12px',
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            background: isFollowing ? 'transparent' : 'linear-gradient(45deg, #4a90e2, #357abd)',
+            borderColor: isFollowing ? '#ff6b6b' : 'transparent',
+            color: isFollowing ? '#ff6b6b' : '#fff',
+            transition: 'all 0.3s ease',
+            "&:hover": {
+              transform: 'translateY(-2px)',
+              background: isFollowing ? 'rgba(255, 107, 107, 0.1)' : 'linear-gradient(45deg, #357abd, #2d6aa6)',
+              borderColor: isFollowing ? '#ff8585' : 'transparent',
+              boxShadow: isFollowing ? '0 4px 15px rgba(255,107,107,0.3)' : '0 6px 20px rgba(74,144,226,0.4)'
+            },
+          }}
+        >
+          {isFollowing ? "Following" : "Follow"}
+        </Button>
 
+        <Button
+          variant="outlined"
+          startIcon={<Article />}
+          onClick={fetchPosts}
+          sx={{
+            flex: 1,
+            padding: '12px',
+            borderRadius: '12px',
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            borderColor: '#4a90e2',
+            borderWidth: '2px',
+            color: '#4a90e2',
+            transition: 'all 0.3s ease',
+            "&:hover": {
+              transform: 'translateY(-2px)',
+              borderColor: '#66a3ff',
+              backgroundColor: 'rgba(74,144,226,0.1)',
+              boxShadow: '0 4px 15px rgba(74,144,226,0.2)'
+            },
+          }}
+        >
+          View Posts
+        </Button>
+      </Box>
+    </Box>
+  </Paper>
+</Grid>
           {showPosts && (
             <Grid item xs={12} md={8}>
               <Button

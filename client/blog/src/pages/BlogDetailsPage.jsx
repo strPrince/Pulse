@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import {
   FaArrowUp,
@@ -27,6 +27,8 @@ const BlogDetailsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showShareMenu, setShowShareMenu] = useState(false);
+
+  const navigate = useNavigate();
 
   const fetchBlogData = useCallback(async () => {
     try {
@@ -109,6 +111,11 @@ const BlogDetailsPage = () => {
   useEffect(() => {
     fetchCurrentUser();
   }, []);
+
+
+const handleEditClick = () => {
+  navigate(`/edit-blog/${blog._id}`); // Navigate to the blog edit page
+};
 
   const shareableLink = `http://localhost:5173/blog/${blog?._id}`;
 
@@ -243,7 +250,7 @@ const BlogDetailsPage = () => {
                     <>
                       <button
                         className="hover:text-blue-400 transition-colors"
-                        onClick={() => navigate(`/edit/${blog._id}`)}
+                        onClick={handleEditClick}
                       >
                         <FaEdit className="text-lg" />
                       </button>

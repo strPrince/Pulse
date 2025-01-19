@@ -11,6 +11,7 @@ import {
   Button, 
   Chip, 
   Stack,
+  Divider,
   IconButton 
 } from "@mui/material";
 import axios from "axios";
@@ -46,13 +47,17 @@ const BlogCard = ({ blog, currentUser, onDelete }) => {
   };
 
   return (
+  <>
     <Card 
+      component={Link}
+      to={`/blog/${blog._id}`}
       sx={{
         backgroundColor: '#1a1a2e',
-        color: '#e6e6ff',
+        color: '#e6e6ff', 
         borderRadius: 4,
         mb: 4,
         transition: 'all 0.3s ease-in-out',
+        textDecoration: 'none',
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: '0 12px 24px rgba(0,0,0,0.5)'
@@ -65,6 +70,8 @@ const BlogCard = ({ blog, currentUser, onDelete }) => {
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center">
             <Avatar 
+              alt={blog.author}
+              // src={blog}
               sx={{ 
                 width: 48, 
                 height: 48, 
@@ -80,7 +87,10 @@ const BlogCard = ({ blog, currentUser, onDelete }) => {
                 variant="subtitle1" 
                 fontWeight="bold" 
                 color="#4a90e2"
-                onClick={() => handleAuthorClick(blog.author)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleAuthorClick(blog.author);
+                }}
                 sx={{ 
                   cursor: 'pointer',
                   '&:hover': { 
@@ -97,17 +107,23 @@ const BlogCard = ({ blog, currentUser, onDelete }) => {
             </Box>
           </Box>
           
-          {/* Moved Edit and Delete Buttons here */}
+          {/* Edit and Delete Buttons */}
           {currentUser && currentUser.username === blog.author && (
             <Box display="flex" alignItems="center">
               <IconButton 
-                onClick={handleEditClick} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleEditClick();
+                }}
                 sx={{ color: '#ff9f43', mr: 2 }}
               >
                 <EditIcon />
               </IconButton>
               <IconButton 
-                onClick={() => handleDeleteClick(blog._id)} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDeleteClick(blog._id);
+                }}
                 sx={{ color: '#ff6b6b' }}
               >
                 <DeleteIcon />
@@ -131,18 +147,6 @@ const BlogCard = ({ blog, currentUser, onDelete }) => {
             >
               {blog.title}
             </Typography>
-            <Chip
-              label={`${blog.voteScore} votes`}
-              sx={{
-                backgroundColor: 'rgba(74,144,226,0.2)',
-                color: '#4a90e2',
-                fontWeight: 'bold',
-                ml: 2,
-                '& .MuiChip-label': {
-                  px: 2
-                }
-              }}
-            />
           </Box>
 
           <Typography 
@@ -165,29 +169,72 @@ const BlogCard = ({ blog, currentUser, onDelete }) => {
                 .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="color: #4a90e2; text-decoration: none;">$1</a>')
             }}
           />
-          <Button
-            component={Link}
-            to={`/blog/${blog._id}`}
-            size="small"
-            sx={{
-              color: '#4a90e2',
-              textTransform: 'none',
-              ml: 2,
-              fontWeight: 500,
-              '&:hover': {
-                backgroundColor: 'rgba(74,144,226,0.1)',
-                color: '#66a3ff'
-              }
-            }}
-          >
-            View Full Post
-          </Button>
+
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" spacing={1}>
+              {blog.categories && blog.categories.map((category, index) => (
+                <Chip
+                  key={index}
+                  label={category}
+                  size="small"
+                  sx={{
+                    backgroundColor: 'rgba(255,159,67,0.2)',
+                    color: '#ff9f43',
+                    fontWeight: 'bold'
+                  }}
+                />
+              ))}
+            </Stack>
+  
+              {blog.tags && blog.tags.map((tag, index) => (
+                <Chip
+                  key={index}
+                  label={tag}
+                  size="small"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/tags/${tag}`);
+                  }}
+                  sx={{
+                    position:'absolute', 
+                    backgroundColor: 'rgba(74,144,226,0.2)',
+                    color: '#4a90e2',
+                    fontWeight: 'bold',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(74,144,226,0.3)',
+                    m: 0.5,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'rgba(74,144,226,0.4)',
+                      transform: 'scale(1.05)',
+                      transition: 'all 0.2s ease-in-out'
+                    }
+                  }} 
+                />
+              ))}         
+              
+              
+              
+            
+            <Typography
+              variant="subtitle2"
+              sx={{
+
+                color: '#4a90e2',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              {blog.voteScore} votes
+            </Typography>
+          </Box>
         </Box>
       </CardContent>
     </Card>
-  );
-};
-
+    <Divider sx={{ my: 3 }} orientation="horizontal" color="#4a90e2" />
+  </>
+)};
 const EnhancedBlogPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -197,6 +244,7 @@ const EnhancedBlogPage = () => {
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:3000/api/blogs");
+      console.log(response.data);
       setBlogs(response.data);
     } catch (error) {
       console.error("Error fetching blogs:", error);

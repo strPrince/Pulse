@@ -9,6 +9,8 @@ import PublicProfile from './pages/userpublicprofile.jsx';
 import AboutUsPage from './pages/Aboutus.jsx';import ContactUs from './pages/conus.jsx';
 import Register from './pages/register.jsx';
 import EditBlog from './pages/editblog.jsx';
+import Tagpage from './pages/tagspage.jsx';
+
 function App() {
   
 
@@ -29,6 +31,7 @@ function App() {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/Signup" element={<Register />} />
         <Route path="/edit-blog/:id" element={<EditBlog />} />
+        <Route path="/tags/:tags" element={<Tagpage />} />
       </Routes>
     </BrowserRouter>  
 

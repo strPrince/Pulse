@@ -161,6 +161,11 @@ app.post('/save-username', authenticate, async (req, res) => {
 
 
 app.post('/api/blog-posts', async (req, res) => {
+  // Check if user is logged in
+  if (!req.session.user) {
+    return res.status(401).json({ message: 'Please login first' });
+  }
+
   try {
     const { title, content, tags, author, image } = req.body;
     console.log('Received blog post data:', req.body);
@@ -170,11 +175,11 @@ app.post('/api/blog-posts', async (req, res) => {
     }
 
     const newBlog = new Blog({
-      title,
+      title,          
       content,
       author,
       image: image || null,
-      tags: tags?.split(',').map((tag) => tag.trim()) || [],
+      tags: Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()) : []) || "other" ,
     });
 
     const savedBlog = await newBlog.save();

@@ -15,6 +15,11 @@ const blogSchema = new mongoose.Schema({
         required: true
     },
     image: { type: String }, 
+  
+    customCategory: {
+        type: String, // Only used if category is 'Other'
+        trim: true
+    },
     tags: [{
         type: String,
         trim: true
