@@ -251,7 +251,7 @@ const handleDeleteClick = async (postId) => {
         return;
       }
 
-      await axios.post(
+      await axios.put(
         'http://localhost:3000/api/update_username',
         { username: newUsername },
         { withCredentials: true }

@@ -21,18 +21,7 @@ const authenticate = (req, res, next) => {
 
 
 
-// router.get('/api/user/profile/:username', (req, res) => {
-//   const { username } = req.params;
 
-//   // Find user by username
-//   const user = User.find(user => user.username === username);
-
-//   if (!user) {
-//     return res.status(404).json({ message: 'User not found' });
-//   }
-
-//   res.json(user);
-// });
 
 router.get('/api/user/profile/:username', async (req, res) => {
   const { username } = req.params;

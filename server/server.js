@@ -15,7 +15,7 @@ require("dotenv").config();
 const Blog = require('./models/Blog');
 const app = express();
 
-
+         
 
 // Middleware
 
@@ -321,7 +321,7 @@ app.post('/api/update_bio', async (req, res) => {
 //   }
 // });
 
-app.post('/api/update_username', async (req, res) => {
+app.put('/api/update_username', async (req, res) => {
   try {
     const { username: newUsername } = req.body;
     
@@ -343,6 +343,12 @@ app.post('/api/update_username', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Update username in all blogs by this user
+    await Blog.updateMany(
+      { author: req.session.user.username },
+      { $set: { author: newUsername } }
+    );
+
     // Update session
     req.session.user.username = newUsername;
     await req.session.save();
@@ -359,6 +365,7 @@ app.post('/api/update_username', async (req, res) => {
     console.error('Error updating username:', err);
     res.status(500).json({ message: 'Error updating username', error: err.message });
   }
+  
 });
   
 
