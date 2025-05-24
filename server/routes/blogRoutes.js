@@ -1,9 +1,45 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const Blog = require('../models/Blog');
 const Comment = require('../models/Comment');
 const User = require('../models/User');
 
 const router = express.Router();
+
+// Trust proxy to get correct IP if behind a proxy (e.g., on Heroku, Vercel, Nginx)
+// This should be set in your main server.js/app.js file, but you can add a note here:
+// app.set('trust proxy', 1);
+
+// Use user ID for logged-in users, otherwise fallback to IP
+function getRateLimitKey(req) {
+  if (req.user && req.user._id) {
+    return req.user._id.toString();
+  }
+  // Use x-forwarded-for if behind proxy, else req.ip
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+}
+
+// Rate limiter for critical APIs (e.g., voting, creating blogs, deleting blogs)
+const voteLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // limit each IP/user to 10 requests per windowMs
+  keyGenerator: getRateLimitKey,
+  message: { error: 'Too many voting requests, please try again later.' }
+});
+
+const createBlogLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 5, // limit each IP/user to 5 blog creations per windowMs
+  keyGenerator: getRateLimitKey,
+  message: { error: 'Too many blog creation attempts, please try again later.' }
+});
+
+const deleteBlogLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 5, // limit each IP/user to 5 blog deletions per windowMs
+  keyGenerator: getRateLimitKey,
+  message: { error: 'Too many blog deletion attempts, please try again later.' }
+});
 
 // GET all blogs (public, sorted by latest)
 router.get('/api/blogs', async (req, res) => {
@@ -26,7 +62,7 @@ router.get('/api/blogs/:id', async (req, res) => {
 });
 
 // POST create a new blog
-router.post('/api/blog-posts', async (req, res) => {
+router.post('/api/blog-posts', createBlogLimiter, async (req, res) => {
   try {
     const { title, content, author, image, customCategory, tags } = req.body;
     const newBlog = new Blog({ title, content, author, image, customCategory, tags });
@@ -48,7 +84,7 @@ router.put('/api/blogs/:id', async (req, res) => {
 });
 
 // DELETE a blog by ID
-router.delete('/api/blogs/:id', async (req, res) => {
+router.delete('/api/blogs/:id', deleteBlogLimiter, async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ message: 'Blog not found' });
@@ -84,7 +120,7 @@ router.get('/api/tags', async (req, res) => {
 });
 
 // VOTING: upvote/downvote/neutral  [fixed]
-router.post('/api/blogs/:id/vote', async (req, res) => {
+router.post('/api/blogs/:id/vote', voteLimiter, async (req, res) => {
   try {
     if (!req.user || !req.user._id) return res.status(401).json({ error: 'Unauthorized' });
     const { action } = req.body; // action: 'up', 'down', or 'neutral'

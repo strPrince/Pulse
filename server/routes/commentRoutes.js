@@ -42,4 +42,21 @@ router.get('/api/comments/:postId', async (req, res) => {
   }
 });
 
+router.delete('/api/comments/:commentId', async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    // Only allow author to delete
+    if (comment.author !== req.user?.username) {
+      return res.status(403).json({ message: 'You are not authorized to delete this comment' });
+    }
+
+    await Comment.findByIdAndDelete(req.params.commentId);
+    res.status(200).json({ message: 'Comment deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
