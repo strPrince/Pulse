@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Navigate } from "react-router-dom";
 import axios from "axios";
 import {
   FaArrowUp,
@@ -11,9 +11,44 @@ import {
   FaLinkedin,
   FaEdit,
   FaTrash,
+  FaReply
 } from "react-icons/fa";
+import Verifypopup from '../components/Verifypopup';
 
 const API_BASE_URL = "http://localhost:3000/api";
+
+const ShareMenu = ({ handleShare }) => (
+  <div className="absolute right-0 top-8 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-10 flex flex-col min-w-[160px]">
+    <button
+      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-800 text-blue-400"
+      onClick={() => handleShare("twitter")}
+      type="button"
+    >
+      <FaTwitter /> Twitter
+    </button>
+    <button
+      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-800 text-blue-400"
+      onClick={() => handleShare("facebook")}
+      type="button"
+    >
+      <FaFacebook /> Facebook
+    </button>
+    <button
+      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-800 text-blue-400"
+      onClick={() => handleShare("linkedin")}
+      type="button"
+    >
+      <FaLinkedin /> LinkedIn
+    </button>
+    <button
+      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-800 text-blue-400"
+      onClick={() => handleShare("copy")}
+      type="button"
+    >
+      <FaShare /> Copy Link
+    </button>
+  </div>
+); // Share post component
 
 const BlogDetailsPage = () => {
   const { id } = useParams();
@@ -27,6 +62,8 @@ const BlogDetailsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState(null);
 
   const navigate = useNavigate();
 
@@ -64,10 +101,31 @@ const BlogDetailsPage = () => {
     }
   }, [id]);
 
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/current_user",
+        {
+          withCredentials: true,
+        }
+      );
+      setCurrentUser(response.data);
+    } catch (error) {
+      setCurrentUser(null);
+    }
+  };
+
   useEffect(() => {
-    fetchBlogData();
-    fetchComments();
-  }, [fetchBlogData, fetchComments]);
+    // Fetch user and blog data in parallel, then set loading to false
+    const fetchAll = async () => {
+      await fetchCurrentUser();
+      await fetchBlogData();
+      await fetchComments();
+      setIsLoading(false);
+    };
+    fetchAll();
+    // eslint-disable-next-line
+  }, [id]);
 
   const handleVote = async (direction) => {
     try {
@@ -78,7 +136,7 @@ const BlogDetailsPage = () => {
         { action },
         { withCredentials: true }
       );
-        console.log(response.data);
+      console.log(response.data);
       setVoteScore(response.data.voteScore);
       setUserVote(response.data.userVote);
     } catch (err) {
@@ -91,34 +149,18 @@ const BlogDetailsPage = () => {
     }
   };
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:3000/api/current_user",
-        {
-          withCredentials: true,
-        }
-      );
-      setCurrentUser(response.data);
-    } catch (error) {
-      console.error("Error fetching current user:", error);
-      setCurrentUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchCurrentUser();
   }, []);
 
 
-const handleEditClick = () => {
-  navigate(`/edit-blog/${blog._id}`); // Navigate to the blog edit page
-};
+  const handleEditClick = () => {
+    navigate(`/edit-blog/${blog._id}`); // Navigate to the blog edit page
+  };
 
   const shareableLink = `http://localhost:5173/blog/${blog?._id}`;
 
+  // function hadle shering links 
   const handleShare = async (platform) => {
     const encodedLink = encodeURIComponent(shareableLink);
     const encodedTitle = encodeURIComponent(blog?.title || "");
@@ -136,7 +178,7 @@ const handleEditClick = () => {
         break;
       case "copy":
         try {
-          await navigator.clipboard.writeText(shareableLink);
+          await navigator.clipboard.writeText(shareableLink); //copy link to clipboard 
           alert("Link copied to clipboard!");
           return;
         } catch (err) {
@@ -198,10 +240,30 @@ const handleEditClick = () => {
     }
   };
 
+  const handleDeleteComment = async (commentId) => {
+    setCommentToDelete(commentId);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async (confirmed) => {
+    setShowDeleteDialog(false);
+    if (confirmed && commentToDelete) {
+      try {
+        await axios.delete(`${API_BASE_URL}/comments/${commentToDelete}`, {
+          withCredentials: true,
+        });
+        setComments(comments.filter((comment) => comment._id !== commentToDelete));
+      } catch (error) {
+        console.error("Error deleting comment:", error);
+      }
+    }
+    setCommentToDelete(null);
+  };
+
   if (isLoading) return <p className="text-white text-center">Loading...</p>;
 
   if (!currentUser) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   if (error) return <p className="text-red-500 text-center">{error}</p>;
@@ -212,14 +274,14 @@ const handleEditClick = () => {
       <div className="max-w-4xl mx-auto py-12 px-6">
         <div className="blog-card flex bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 shadow-2xl border border-gray-700">
           <div className="flex flex-col items-center mr-6 pt-2">
-            <button 
+            <button
               onClick={() => handleVote("up")}
               className={`p-2 rounded-lg transition-all hover:scale-110 ${userVote === 'up' ? 'bg-blue-600' : 'hover:bg-gray-700'}`}
             >
               <FaArrowUp className="text-2xl text-white" />
             </button>
             <span className="my-3 font-bold text-lg">{voteScore}</span>
-            <button 
+            <button
               onClick={() => handleVote("down")}
               className={`p-2 rounded-lg transition-all hover:scale-110 ${userVote === 'down' ? 'bg-red-600' : 'hover:bg-gray-700'}`}
             >
@@ -238,14 +300,14 @@ const handleEditClick = () => {
                   <button className="hover:text-blue-400 transition-colors">
                     <FaBookmark className="text-lg" />
                   </button>
-                  <button 
+                  <button
                     className="hover:text-blue-400 transition-colors"
                     onClick={() => setShowShareMenu(!showShareMenu)}
                   >
                     <FaShare className="text-lg" />
                   </button>
 
-                  
+
                   {blog.author === currentUser.username && (
                     <>
                       <button
@@ -262,7 +324,7 @@ const handleEditClick = () => {
                       </button>
                     </>
                   )}
-                  {showShareMenu && <ShareMenu />}
+                  {showShareMenu && <ShareMenu handleShare={handleShare} />}
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-white mb-3">{blog.title}</h1>
@@ -278,9 +340,9 @@ const handleEditClick = () => {
             <div className="prose prose-invert max-w-none">
               <div className="mb-8">
                 {blog.image && (
-                  <img 
-                    src={blog.image} 
-                    alt="Blog cover" 
+                  <img
+                    src={blog.image}
+                    alt="Blog cover"
                     className="w-full rounded-xl mb-6 object-cover shadow-lg"
                     loading="lazy"
                   />
@@ -304,7 +366,7 @@ const handleEditClick = () => {
                 rows="4"
                 required
               />
-              <button 
+              <button
                 type="submit"
                 className="mt-3 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!newComment.trim()}
@@ -327,6 +389,25 @@ const handleEditClick = () => {
                       </span>
                     </div>
                     <p className="text-gray-300 text-lg">{comment.content}</p>
+
+                    <div className="flex gap-2 mt-3 justify-end">
+
+                     
+                      
+                     {comment.author === currentUser.username ? (
+                        <button
+                          className="flex items-center text-red-400 hover:text-red-500 transition-colors"
+                          onClick={() => handleDeleteComment(comment._id)}
+                        >
+                          <FaTrash className="mr-1" /> Delete
+                        </button>
+                      ):(
+                      <button className="flex items-center text-blue-400 hover:text-blue-500 transition-colors">
+                        <FaReply className="mr-1" /> Reply
+                      </button>
+
+                      )}
+                 </div>
                   </div>
                 ))}
               </div>
@@ -334,7 +415,13 @@ const handleEditClick = () => {
           </div>
         </div>
       </div>
+      <Verifypopup
+  open={showDeleteDialog}
+  onClose={handleConfirmDelete}
+  message="Are you sure you want to delete this comment?"
+/>
     </div>
-  )};
+  )
+};
 
 export default BlogDetailsPage;

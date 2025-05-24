@@ -253,7 +253,7 @@ const handleDeleteClick = async (postId) => {
 
       await axios.put(
         'http://localhost:3000/api/update_username',
-        { username: newUsername },
+        { newUsername },
         { withCredentials: true }
       );
       setUser((prevUser) => ({ ...prevUser, username: newUsername }));
@@ -301,28 +301,33 @@ const handleDeleteClick = async (postId) => {
   return (
     <div className='' style={{height: '100vh' ,  background: 'linear-gradient(to bottom, #0f0f1a, #1a1a2e)',backgroundAttachment: 'fixed',overflowY: 'auto'}}>
       <IconButton
-  onClick={() => navigate('/')}
-  sx={{ 
-    color: 'white',
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    zIndex: 1,
-    '&:hover': {
-      color: 'primary.main',
-      transform: 'scale(1.1)',
-    },
-    transition: 'all 0.2s ease-in-out',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px'
-  }}
-  aria-label="Return to home"
-  title="Return to home"
->
-  <HomeIcon />
-  <Typography variant="caption" sx={{fontSize: '0.8rem'}}>Home</Typography>
-</IconButton>
+        onClick={() => navigate('/')}
+        sx={{ 
+          color: 'white',
+          position: 'fixed',
+          top: 32,
+          left: 32,
+          zIndex: 10,
+          background: 'rgba(44,54,80,0.7)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+          borderRadius: '50%',
+          p: 1.2,
+          '&:hover': {
+            color: 'lightblue',
+            background: 'rgba(44,54,80,0.95)',
+            transform: 'scale(1.1)',
+          },
+          transition: 'all 0.2s ease-in-out',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}
+        aria-label="Return to home"
+        title="Return to home"
+      >
+        <HomeIcon />
+        <Typography variant="caption" sx={{fontSize: '0.8rem', color: 'white'}}>Home</Typography>
+      </IconButton>
       <Box sx={{ padding: 2, maxWidth: 900, margin: 'auto' }}>
         {/* Profile Header */}
         <Card sx={{ marginBottom: 2, padding: 2, position: 'relative', backgroundColor:'#1C232D', color: 'white' }}>
@@ -492,6 +497,9 @@ const handleDeleteClick = async (postId) => {
                   )}
                 </div>
               )}
+
+              {// followers tab  
+              }
    {tabIndex === 1 && (
   <Box>
     {followers?.length > 0 ? (
@@ -521,7 +529,9 @@ const handleDeleteClick = async (postId) => {
     )}
   </Box>
 )}
-
+{
+  //following tab 
+}
 {tabIndex === 2 && (
   <Box>
     {following?.length > 0 ? (
@@ -555,65 +565,75 @@ const handleDeleteClick = async (postId) => {
 
         {/* Bio and Username Editor */}
         {isEditingProfile && (
-          <Card sx={{ marginTop: 2, padding: 2 ,backgroundColor:'#1C232D',color:'white'}}>
-            <Typography variant="h6">Edit Profile</Typography>
-
-            <Box sx={{ marginTop: 2 }}>
-              <Typography variant="subtitle1">Update Bio</Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="Add or update your bio"
-                value={newBio}
-                onChange={(e) => setNewBio(e.target.value)}
-                sx={{ 
-                  marginBottom: 2,
-                  '& .MuiOutlinedInput-root': {
-                    color: 'white',
-                    '& fieldset': {
-                      borderColor: 'white',
-                    },
-                  },
-                }}
-              />
-              <Button 
-                variant="contained" 
-                onClick={handleBioUpdate} 
-                sx={{ marginBottom: 2 }}
-                startIcon={<UpdateIcon />}
-              >
-                Save Bio
-              </Button>
-            </Box>
-
-            <Box sx={{ marginTop: 2 }}>
-              <Typography variant="subtitle1">Update Username</Typography>
-              <TextField
-                fullWidth
-                placeholder="Update your username"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                sx={{ 
-                  marginBottom: 2,
-                  '& .MuiOutlinedInput-root': {
-                    color: 'white',
-                    '& fieldset': {
-                      borderColor: 'white',
-                    },
-                  },
-                }}
-              />
-              <Button 
-                variant="contained" 
-                onClick={handleUsernameUpdate}
-                sx={{ marginBottom: 2 }}
-                startIcon={<UpdateIcon />}
-              >
-                Save Username
-              </Button>
-            </Box>
-          </Card>
+          <Card sx={{ marginTop: 2, padding: 2, backgroundColor: '#1C232D', color: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.25)', borderRadius: '12px' }}>
+  <Typography variant="h6">Edit Profile</Typography>
+  <Box sx={{ marginTop: 2 }}>
+    <Typography variant="subtitle1">Update Bio</Typography>
+    <TextField
+      fullWidth
+      multiline
+      rows={3}
+      placeholder="Add or update your bio"
+      value={newBio}
+      onChange={(e) => setNewBio(e.target.value)}
+      sx={{ 
+        marginBottom: 2,
+        '& .MuiOutlinedInput-root': {
+          color: 'white',
+          backgroundColor: '#232B39',
+          '& fieldset': {
+            borderColor: 'white',
+          },
+        },
+        '& .MuiInputLabel-root': {
+          color: 'lightblue',
+        },
+      }}
+      InputProps={{ style: { color: 'white' } }}
+      InputLabelProps={{ style: { color: 'lightblue' } }}
+    />
+    <Button 
+      variant="contained" 
+      onClick={handleBioUpdate} 
+      sx={{ marginBottom: 2, background: 'linear-gradient(90deg, #232B39 0%, #1a1a2e 100%)', color: 'white' }}
+      startIcon={<UpdateIcon />}
+    >
+      Save Bio
+    </Button>
+  </Box>
+  <Box sx={{ marginTop: 2 }}>
+    <Typography variant="subtitle1">Update Username</Typography>
+    <TextField
+      fullWidth
+      placeholder="Update your username"
+      value={newUsername}
+      onChange={(e) => setNewUsername(e.target.value)}
+      sx={{ 
+        marginBottom: 2,
+        '& .MuiOutlinedInput-root': {
+          color: 'white',
+          backgroundColor: '#232B39',
+          '& fieldset': {
+            borderColor: 'white',
+          },
+        },
+        '& .MuiInputLabel-root': {
+          color: 'lightblue',
+        },
+      }}
+      InputProps={{ style: { color: 'white' } }}
+      InputLabelProps={{ style: { color: 'lightblue' } }}
+    />
+    <Button 
+      variant="contained" 
+      onClick={handleUsernameUpdate}
+      sx={{ marginBottom: 2, background: 'linear-gradient(90deg, #232B39 0%, #1a1a2e 100%)', color: 'white' }}
+      startIcon={<UpdateIcon />}
+    >
+      Save Username
+    </Button>
+  </Box>
+</Card>
         )}
       </Box>
 

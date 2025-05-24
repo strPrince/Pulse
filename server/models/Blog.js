@@ -14,7 +14,7 @@ const blogSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    image: { type: String }, 
+    image: { type: String }, //Storing image URL 
   
     customCategory: {
         type: String, // Only used if category is 'Other'
@@ -28,10 +28,12 @@ const blogSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    // store user id of upvoters    
     upvotes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }],
+    }], 
+    // store user id of downvoters
     downvotes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

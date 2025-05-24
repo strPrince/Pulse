@@ -13,30 +13,13 @@ export default function FeaturedBlogs() {
   const blogsRef = useRef([]);
 
   useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/blogs");
-        setBlogs(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching blogs:", err);
-        // if (err.response && err.response.status === 401) {
-        //   window.location.href = '/login';
-        //   return;
-        // }
-        setLoading(false);
-      }
-    };
-
-    fetchBlogs();
+    axios.get("http://localhost:3000/api/blogs")
+      .then(res => setBlogs(res.data))
+      .catch(err => console.error("Error fetching blogs:", err))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleReadMore = (blogId) => {
-    window.location.href = `/login`;
-  };
-
   useEffect(() => {
-    // Only animate if blogs are loaded and we have references
     if (!loading && blogsRef.current.length > 0) {
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -45,23 +28,12 @@ export default function FeaturedBlogs() {
           toggleActions: "play none none reverse"
         }
       });
-
-      blogsRef.current.forEach((blogEl, index) => {
+      blogsRef.current.forEach((el, idx) => {
         tl.fromTo(
-          blogEl,
-          { 
-            opacity: 0, 
-            y: 50,
-            scale: 0.9
-          },
-          { 
-            opacity: 1, 
-            y: 0,
-            scale: 1,
-            duration: 0.6,
-            ease: "power3.out"
-          },
-          index * 0.2 // Stagger effect
+          el,
+          { opacity: 0, y: 50, scale: 0.9 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "power3.out" },
+          idx * 0.2
         );
       });
     }
@@ -86,10 +58,10 @@ export default function FeaturedBlogs() {
         </h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogs.slice(0, 6).map((blog, index) => (
+          {blogs.slice(0, 6).map((blog, idx) => (
             <div
               key={blog._id}
-              ref={el => blogsRef.current[index] = el}
+              ref={el => blogsRef.current[idx] = el}
               className="bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700 transition duration-300 hover:border-blue-600 hover:shadow-blue-900/50"
             >
               <h3 className="text-2xl font-bold text-white mb-4">
@@ -99,7 +71,6 @@ export default function FeaturedBlogs() {
                 {blog.content.slice(0, 150)}...
               </p>
               <a
-              onClick={() => handleReadMore()}
                 href={`/blog/${blog._id}`}
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
               >

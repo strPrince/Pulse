@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import Nav from '../components/navbar';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import BlogCard from '../components/blogcard';
 
 const Tagspage = () => {
   const { tags } = useParams();
@@ -58,79 +59,13 @@ const Tagspage = () => {
         >
           {blogs.map((blog) => (
             <Grid item key={blog._id} sx={{ width: '100%', maxWidth: '800px' }}>
-              <Link to={`/blog/${blog._id}`} style={{ textDecoration: 'none' }}>
-                <Card
-                  sx={{
-                    width: '100%',
-                    maxWidth: '800px',
-                    background: '#1a1a2e',
-                    color: '#e6e6ff',
-                    borderRadius: 4,
-                    transition: 'all 0.3s',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                    },
-                  }}
-                >
-                  <CardContent>
-                    {/* Blog Header */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                      <Box display="flex" alignItems="center">
-                        <Avatar sx={{ bgcolor: '#ff6b6b', mr: 2 }}>{blog.author[0]}</Avatar>
-                        <Box>
-                          <Typography variant="subtitle1" color="#4a90e2" fontWeight="bold">
-                            {blog.author}
-                          </Typography>
-                          <Typography variant="caption">
-                            {new Date(blog.createdAt).toDateString()}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Box>
-                        <IconButton sx={{ color: '#FFA500' }}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton sx={{ color: '#ff6b6b' }}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </Box>
-    
-                    {/* Blog Content */}
-                    <Box my={2}>
-                      <Typography variant="h5" fontWeight="bold" color="#FFA500">
-                        {blog.title}
-                      </Typography>
-                      <Typography variant="body2" color="#e6e6ff">
-                        {blog.content.slice(0, 100)}...
-                      </Typography>
-                    </Box>
-    
-                    {/* Tags */}
-                    <Stack direction="row" spacing={1}>
-                      {blog.tags.map((tag, idx) => (
-                        <Chip
-                          key={idx}
-                          label={tag}
-                          sx={{
-                            background: 'rgba(74,144,226,0.2)',
-                            color: '#4a90e2',
-                            fontWeight: 'bold',
-                          }}
-                        />
-                      ))}
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Link>
+              <BlogCard blog={blog} currentUser={null} onDelete={() => {}} />
             </Grid>
           ))}
         </Grid>
       </Container>
     </>
-  );}
-  
+  );
+};
 
 export default Tagspage;

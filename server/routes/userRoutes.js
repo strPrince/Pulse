@@ -56,8 +56,8 @@ router.post("/api/users/follow/:id", async (req, res) => {
       return res.status(400).json({ message: "You are already following this user." });
     }
 
-    userToFollow.followers.push(currentUser);
-    currentUserData.following.push(id);
+    userToFollow.followers.push(currentUser); // Add current user to the followers list of the user to follow
+    currentUserData.following.push(id); // Add the user to the following list of the current user
 
     await userToFollow.save();
     await currentUserData.save();
@@ -149,5 +149,82 @@ router.get('/api/followersandfollowing', async (req, res) => {
   }
 });
 
+// Save or update username/email
+router.post('/save-username', authenticate, async (req, res) => {
+  try {
+    const { username, email } = req.body;
+    const userId = req.user.id;
+
+    // Check if the username or email is already taken
+    const existingUser = await User.findOne({
+      $or: [{ username }, { email }],
+      _id: { $ne: userId } // Exclude the current user from the query
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username or email already in use' });
+    }
+
+    // Update the user's username and email
+    await User.findByIdAndUpdate(userId, { username, email });
+
+    res.status(200).json({ message: 'Username and email updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating username and email', error: error.message });
+  }
+});
+
+// Update user bio
+router.post('/api/update_bio', async (req, res) => {
+  try {
+    const { bio } = req.body;
+    const userId = req.user.id;
+
+    // Update the user's bio
+    await User.findByIdAndUpdate(userId, { bio });
+
+    res.status(200).json({ message: 'Bio updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating bio', error: error.message });
+  }
+});
+
+// Update username
+router.put('/api/update_username', async (req, res) => {
+  try {
+    const { newUsername } = req.body;
+    if (!newUsername || !/^[a-zA-Z0-9._@]+$/.test(newUsername)) {
+      return res.status(400).json({ message: 'Valid username is required' });
+    }
+    const userId = req.user.id || req.user._id;
+    // Check if the new username is already taken
+    const existingUser = await User.findOne({ username: newUsername });
+    if (existingUser) {
+      return res.status(409).json({ message: 'Username already taken' });
+    }
+    // Update the user's username
+    await User.findByIdAndUpdate(userId, { username: newUsername });
+    res.status(200).json({ message: 'Username updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating username', error: error.message });
+  }
+});
+
+// Get user by username
+router.get('/api/users/:username', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const user = await User.findOne({ username }).populate('followers', 'username').populate('following', 'username');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Error retrieving user', error: err.message });
+  }
+});
 
 module.exports = router;
