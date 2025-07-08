@@ -11,7 +11,8 @@ import {
   FaLinkedin,
   FaEdit,
   FaTrash,
-  FaReply
+  FaReply,
+  FaArrowLeft
 } from "react-icons/fa";
 import Verifypopup from '../components/Verifypopup';
 
@@ -272,6 +273,14 @@ const BlogDetailsPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       <div className="max-w-4xl mx-auto py-12 px-6">
+        {/* Back Button */}
+        <button
+          className="mb-6 flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-semibold text-lg"
+          onClick={() => window.history.length > 1 ? window.history.back() : navigate("/")}
+        >
+          <FaArrowLeft /> Back
+        </button>
+
         <div className="blog-card flex bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 shadow-2xl border border-gray-700">
           <div className="flex flex-col items-center mr-6 pt-2">
             <button

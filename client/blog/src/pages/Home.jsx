@@ -21,20 +21,26 @@ const HomePage = () => {
   return (
     <>
       <Nav />
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: '100vh', background: 'linear-gradient(to bottom, #0f0f1a, #1a1a2e)' }}>
-        {/* Sidebar for tags and categories */}
-        <div style={{ width: 300, marginRight: 32, position: 'sticky', top: 32, height: 'fit-content', display: isAuthenticated ? 'block' : 'none' }}>
-          <SidebarTagsCategories />
-        </div>
-        <div style={{ flex: 1, maxWidth: 900 }}>
-          {isAuthenticated ? <BlogPage /> : (
-            <>
-              <Hero />
-              <Fet />
-              <Trand />
-            </>
-          )}
-        </div>
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-blue-900">
+        {isAuthenticated ? (
+          // Authenticated user layout with sidebar
+          <div className="flex justify-center items-start min-h-screen">
+            {/* Sidebar for tags and categories */}
+            <div className="hidden lg:block w-80 mr-8 sticky top-8 h-fit">
+              <SidebarTagsCategories />
+            </div>
+            <div className="flex-1 max-w-4xl px-4 sm:px-6 lg:px-8">
+              <BlogPage />
+            </div>
+          </div>
+        ) : (
+          // Non-authenticated user layout - full width
+          <div className="w-full">
+            <Hero />
+            <Fet />
+            <Trand />
+          </div>
+        )}
       </div>
       <Foot />
     </>

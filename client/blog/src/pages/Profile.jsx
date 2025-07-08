@@ -300,34 +300,18 @@ const handleDeleteClick = async (postId) => {
 
   return (
     <div className='' style={{height: '100vh' ,  background: 'linear-gradient(to bottom, #0f0f1a, #1a1a2e)',backgroundAttachment: 'fixed',overflowY: 'auto'}}>
-      <IconButton
-        onClick={() => navigate('/')}
-        sx={{ 
-          color: 'white',
-          position: 'fixed',
-          top: 32,
-          left: 32,
-          zIndex: 10,
-          background: 'rgba(44,54,80,0.7)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-          borderRadius: '50%',
-          p: 1.2,
-          '&:hover': {
-            color: 'lightblue',
-            background: 'rgba(44,54,80,0.95)',
-            transform: 'scale(1.1)',
-          },
-          transition: 'all 0.2s ease-in-out',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px'
-        }}
-        aria-label="Return to home"
-        title="Return to home"
-      >
-        <HomeIcon />
-        <Typography variant="caption" sx={{fontSize: '0.8rem', color: 'white'}}>Home</Typography>
-      </IconButton>
+      
+      {/* Optional: Add a back button at the top of the profile content */}
+      <Box sx={{ maxWidth: 900, margin: 'auto', pt: 4 }}>
+        <Button
+          variant="text"
+          startIcon={<HomeIcon />}
+          onClick={() => navigate(-1)}
+          sx={{ color: '#4a90e2', mb: 2 }}
+        >
+          Back
+        </Button>
+      </Box>
       <Box sx={{ padding: 2, maxWidth: 900, margin: 'auto' }}>
         {/* Profile Header */}
         <Card sx={{ marginBottom: 2, padding: 2, position: 'relative', backgroundColor:'#1C232D', color: 'white' }}>

@@ -99,29 +99,29 @@ export default function WebsiteFeatures() {
   return (
     <section 
       ref={sectionRef}
-      className="min-h-screen bg-gradient-to-bl from-gray-900 to-blue-900 py-16 px-6"
+      className="min-h-screen bg-gradient-to-bl from-gray-900 to-blue-900 py-16 px-4 sm:px-6 lg:px-8"
     >
-      <div className="container mx-auto max-w-6xl">
-        <h2 className="text-5xl font-extrabold text-white text-center mb-12">
+      <div className="max-w-7xl mx-auto w-full">
+        <h2 className="text-4xl sm:text-5xl font-extrabold text-white text-center mb-12">
           Why Choose Our Platform
         </h2>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {features.map((feature, index) => (
             <div
               key={feature.title}
               ref={el => featuresRef.current[index] = el}
-              className="bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700 transition duration-300 hover:border-blue-600 hover:shadow-blue-900/50 flex flex-col"
+              className="bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700 transition duration-300 hover:border-blue-600 hover:shadow-blue-900/50 hover:transform hover:scale-105 flex flex-col"
             >
               <div className="flex items-center mb-4">
-                <div className="text-blue-400 mr-4">
+                <div className="text-blue-400 mr-4 flex-shrink-0">
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
                   {feature.title}
                 </h3>
               </div>
-              <p className="text-gray-300 mb-6 flex-grow">
+              <p className="text-gray-300 mb-6 flex-grow text-sm sm:text-base">
                 {feature.description}
               </p>
             </div>
@@ -132,7 +132,7 @@ export default function WebsiteFeatures() {
           <div className="text-center text-gray-400 py-16">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-24 w-24 mx-auto mb-6 text-gray-600"
+              className="h-16 w-16 sm:h-24 sm:w-24 mx-auto mb-6 text-gray-600"
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -144,7 +144,7 @@ export default function WebsiteFeatures() {
                 d="M9.663 17h4.673M12 3v1m6.364 1.636l-1.414 1.414M21 12h-1M4 12H3m3.343-1.657l-1.414-1.414M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
               />
             </svg>
-            <p>No features to display</p>
+            <p className="text-lg">No features to display</p>
           </div>
         )}
       </div>

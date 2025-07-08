@@ -37,43 +37,46 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="min-h-screen min-w-full flex flex-col lg:flex-row justify-center items-center bg-gradient-to-br from-gray-900 to-blue-500 bg-opacity-8  text-white py-16 px-6">
-      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between w-full">
-        <div className="text-center lg:text-left lg:w-1/2 space-y-6">
-          <h1 
-            ref={titleRef} 
-            className="text-5xl font-extrabold tracking-tight"
-          >
-            Unleash Your Thoughts
-          </h1>
-          <p 
-            ref={subtitleRef} 
-            className="text-xl text-gray-300 max-w-xl mx-auto lg:mx-0"
-          >
-            Transform your ideas into powerful narratives. Share, connect, and inspire through meaningful content.
-          </p>
-          <div>
-            <button 
-              ref={buttonRef}
-              onClick={() => window.location.href = '/login'}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+    <section className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-blue-600 text-white py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto w-full">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+          {/* Content Section */}
+          <div className="text-center lg:text-left lg:w-1/2 space-y-6">
+            <h1 
+              ref={titleRef} 
+              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight"
             >
-              Start Writing
-            </button>
+              Unleash Your Thoughts
+            </h1>
+            <p 
+              ref={subtitleRef} 
+              className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+            >
+              Transform your ideas into powerful narratives. Share, connect, and inspire through meaningful content.
+            </p>
+            <div className="pt-4">
+              <button 
+                ref={buttonRef}
+                onClick={() => window.location.href = '/login'}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-lg"
+              >
+                Start Writing
+              </button>
+            </div>
+          </div>
+          
+          {/* Image Section */}
+          <div 
+            ref={illustrationRef}
+            className="lg:w-1/2 max-w-lg w-full"
+          >
+            <img
+              src={blogsvg} 
+              alt="Blog illustration"
+              className="w-full h-auto rounded-lg shadow-2xl"
+            />
           </div>
         </div>
-        
-        <div 
-  ref={illustrationRef}
-  className="mt-12 lg:mt-0 lg:w-1/2 max-w-md"
->
-  <img
-    src={blogsvg} 
-    alt="Illustration"
-    className="w-full h-auto rounded-lg shadow-lg"
-    />
-</div>
-
       </div>
     </section>
   );

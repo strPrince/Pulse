@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes'); // Import the auth routes
 const blogRoutes = require('./routes/blogRoutes'); // Import the blog routes
 const commentRoutes = require('./routes/commentRoutes'); // Import the comment routes
 const userRoutes = require('./routes/userRoutes');
+const searchRoutes = require('./routes/searchRoutes'); // Import the search routes
 // Import the user routes
 const cors = require('cors');
 const User = require('./models/User');
@@ -52,6 +53,7 @@ app.use( blogRoutes);
 app.use( commentRoutes);
 app.use( userRoutes);
 app.use( authRoutes);
+app.use( searchRoutes ); // Register the search routes
 
 
 // Connect to MongoDB

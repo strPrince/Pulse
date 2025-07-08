@@ -10,6 +10,7 @@ import AboutUsPage from './pages/Aboutus.jsx';import ContactUs from './pages/con
 import Register from './pages/register.jsx';
 import EditBlog from './pages/editblog.jsx';
 import Tagpage from './pages/tagspage.jsx';
+import SearchResults from './pages/SearchResults.jsx';
 
 function App() {
   
@@ -32,6 +33,7 @@ function App() {
         <Route path="/Signup" element={<Register />} />
         <Route path="/edit-blog/:id" element={<EditBlog />} />
         <Route path="/tags/:tags" element={<Tagpage />} />
+        <Route path="/search" element={<SearchResults />} />
       </Routes>
     </BrowserRouter>  
 

@@ -9,6 +9,7 @@ import {
   Avatar,
 } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
 import axios from "axios";
 import { DownOutlined } from '@ant-design/icons';
 import { Dropdown, Space } from 'antd';
@@ -17,6 +18,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +45,13 @@ const Navbar = () => {
     }
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
   const menuItems = [
     {
       key: '1',
@@ -65,11 +74,35 @@ const Navbar = () => {
   }
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: "#090d1a" }}>
+    <AppBar position="static" sx={{ backgroundColor: "#181a20" }}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: "bold", letterSpacing: 1 }}>
           Pulse
         </Typography>
+        {/* Search Bar - only for logged in users */}
+        {isLoggedIn && (
+          <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', marginRight: 16 }}>
+            <input
+              type="text"
+              placeholder="Search blogs..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 20,
+                border: '1px solid #333',
+                outline: 'none',
+                background: '#23272f',
+                color: 'white',
+                marginRight: 8,
+                minWidth: 160
+              }}
+            />
+            <IconButton type="submit" sx={{ color: '#aaa' }}>
+              <SearchIcon />
+            </IconButton>
+          </form>
+        )}
         {!isLoggedIn ? (
           <>
             <Button color="inherit" component={Link} to="/about" sx={{ fontWeight: "bold", color: "#d5eafc" }}>ABOUT US</Button>
