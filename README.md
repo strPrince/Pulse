@@ -141,3 +141,10 @@ router.get('/api/search', async (req, res) => {
 
 ## ❓ Questions?
 Open an issue or contact the maintainer for help.
+
+## 🚀 Next Steps
+- Add more advanced search options (e.g., author, date range, etc.).
+- Implement pagination for large result sets.
+- Enhance the UI for a better user experience.
+-notify
+-dynamic title 
